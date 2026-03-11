@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+bun.lockb
+
+# Build outputs
+build/
+dist/
+out/
+release/
+
+# Artifacts
+artifacts/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.sock
+
+# Coverage and temporary files
+coverage/
+.nyc_output/
+.tmp/
+temp/
+
+# IDE specific files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# System files
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+ ehthumbs.db
+
+# Bun specific
+.bun/
+.bunfig.json
+
+# TypeScript
+*.tsbuildinfo

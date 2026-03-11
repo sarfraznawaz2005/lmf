@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>LMF Viewer</title>
+	<link rel="stylesheet" href="index.css">
+</head>
+<body>
+	<div class="app-container">
+		<!-- Toolbar -->
+		<header class="toolbar">
+			<div class="toolbar-left">
+				<button class="btn btn-primary" id="btn-open" title="Open File (Ctrl+O)">
+					<span class="icon">📁</span>
+					<span>Open</span>
+				</button>
+			</div>
+
+			<div class="toolbar-center">
+				<button class="btn btn-icon" id="btn-auto-fit" title="Auto Fit (Ctrl+0)">
+					<span class="icon">⤢</span>
+				</button>
+			</div>
+
+			<div class="toolbar-right">
+				<button class="btn btn-icon" id="btn-toggle-code" title="Toggle Source (Ctrl+/)">
+					<span class="icon">&lt;/&gt;</span>
+				</button>
+				<button class="btn btn-icon" id="btn-refresh" title="Refresh (F5)">
+					<span class="icon">↻</span>
+				</button>
+				<button class="btn btn-icon" id="btn-menu" title="More options">
+					<span class="icon">⋮</span>
+				</button>
+			</div>
+		</header>
+
+		<!-- Main Content -->
+		<div class="main-content">
+			<!-- Sidebar -->
+			<aside class="sidebar" id="sidebar">
+				<div class="sidebar-header">
+					<span class="sidebar-title">Open Files</span>
+				</div>
+				<div class="file-list" id="file-list">
+					<!-- File items will be inserted here -->
+					<div class="empty-state" id="sidebar-empty">
+						<span class="empty-icon">📄</span>
+						<p>No files open</p>
+						<p class="empty-hint">Use Ctrl+O to open a file</p>
+					</div>
+				</div>
+				<div class="sidebar-resize-handle" id="sidebar-resize"></div>
+			</aside>
+
+			<!-- Preview Area -->
+			<main class="preview-area" id="preview-area">
+				<div class="preview-container" id="preview-container">
+					<div class="preview-placeholder" id="preview-placeholder">
+						<span class="placeholder-icon">🖼️</span>
+						<h2>No file selected</h2>
+						<p>Open an LMF file to preview</p>
+					</div>
+					<div class="preview-svg" id="preview-svg"></div>
+				</div>
+			</main>
+		</div>
+
+		<!-- Code Panel (collapsible) -->
+		<div class="code-panel" id="code-panel">
+			<div class="code-panel-header">
+				<span>Source Code</span>
+				<button class="btn btn-icon btn-small" id="btn-close-code">✕</button>
+			</div>
+			<textarea class="code-content" id="code-content" spellcheck="false"></textarea>
+		</div>
+
+		<!-- Status Bar -->
+		<footer class="statusbar" id="statusbar">
+			<span class="status-item" id="status-file">-</span>
+			<span class="status-separator">•</span>
+			<span class="status-item" id="status-dimensions">- x -</span>
+			<span class="status-separator">•</span>
+			<span class="status-item" id="status-nodes">- nodes</span>
+			<div class="status-separator">•</div>
+			<div class="zoom-group">
+				<span class="status-item" id="status-zoom">100%</span>
+				<span class="dropdown-arrow">▼</span>
+				<div class="zoom-dropdown" id="zoom-dropdown">
+					<button data-zoom="0.25">25%</button>
+					<button data-zoom="0.5">50%</button>
+					<button data-zoom="0.75">75%</button>
+					<button data-zoom="1">100%</button>
+					<button data-zoom="2">200%</button>
+					<button data-zoom="3">300%</button>
+					<button data-zoom="4">400%</button>
+					<button data-zoom="5">500%</button>
+				</div>
+			</div>
+			<span class="status-item status-right" id="status-python">Python: checking...</span>
+		</footer>
+
+		<!-- Context Menu -->
+		<div class="context-menu" id="context-menu">
+			<button class="context-item" data-action="open">Open</button>
+			<button class="context-item" data-action="properties">Properties</button>
+			<button class="context-item danger" data-action="delete">Delete</button>
+		</div>
+
+		<!-- Properties Dialog -->
+		<div class="dialog-overlay" id="properties-overlay">
+			<div class="dialog" id="properties-dialog">
+				<div class="dialog-header">
+					<h3>File Properties</h3>
+					<button class="btn btn-icon btn-small" id="btn-close-properties">✕</button>
+				</div>
+				<div class="dialog-content" id="properties-content">
+					<!-- Properties will be inserted here -->
+				</div>
+				<div class="dialog-footer">
+					<button class="btn btn-primary" id="btn-close-properties-footer">Close</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Delete Confirmation Dialog -->
+		<div class="dialog-overlay" id="delete-overlay">
+			<div class="dialog dialog-sm" id="delete-dialog">
+				<div class="dialog-content">
+					<span class="warning-icon">⚠️</span>
+					<h3>Delete File?</h3>
+					<p id="delete-message">Are you sure you want to delete this file?</p>
+				</div>
+				<div class="dialog-footer">
+					<button class="btn" id="btn-cancel-delete">Cancel</button>
+					<button class="btn btn-danger" id="btn-confirm-delete">Delete</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Export Success Toast -->
+		<div class="toast" id="export-toast">
+			<span class="toast-icon">✓</span>
+			<span class="toast-message" id="toast-message">Exported successfully!</span>
+		</div>
+
+		<!-- App Menu Dropdown -->
+		<div class="app-menu-dropdown" id="app-menu-dropdown">
+			<button class="menu-item" id="menu-open-file">
+				<span class="menu-icon">📁</span>
+				<span>Open File</span>
+			</button>
+			<button class="menu-item" id="menu-close-file">
+				<span class="menu-icon">✕</span>
+				<span>Close File</span>
+			</button>
+			<hr class="menu-separator">
+			<button class="menu-item" id="menu-export-png">
+				<span class="menu-icon">🖼️</span>
+				<span>Export PNG</span>
+			</button>
+			<button class="menu-item" id="menu-export-svg">
+				<span class="menu-icon">📐</span>
+				<span>Export SVG</span>
+			</button>
+			<button class="menu-item" id="menu-export-html">
+				<span class="menu-icon">🌐</span>
+				<span>Export HTML</span>
+			</button>
+			<hr class="menu-separator">
+			<button class="menu-item" id="menu-properties">
+				<span class="menu-icon">ℹ️</span>
+				<span>File Properties</span>
+			</button>
+			<hr class="menu-separator">
+			<button class="menu-item" id="menu-about">
+				<span class="menu-icon">📖</span>
+				<span>About</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- About Dialog -->
+	<div class="dialog-overlay" id="about-overlay">
+		<div class="dialog dialog-sm">
+			<div class="dialog-header">
+				<h3>About LMF Viewer</h3>
+				<button class="btn btn-icon btn-small" id="btn-close-about">✕</button>
+			</div>
+			<div class="dialog-content about-content">
+				<h4>LMF Viewer</h4>
+				<p>A desktop application for viewing and exporting LMF (LLM Markup Format) files.</p>
+				<p>Built with Electrobun framework</p>
+				<p class="version">Version 1.0.0 (dev)</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Hidden file input for opening files -->
+	<input type="file" id="file-input" accept=".lmf" style="display: none;">
+	<script src="index.js"></script>
+</body>
+</html>

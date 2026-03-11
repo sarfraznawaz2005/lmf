@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800">
+<defs>
+  <clipPath id="c1"><rect x="1026.40" y="24.00" width="101.60" height="51.00" rx="8.0"/></clipPath>
+  <clipPath id="c2"><rect x="244.00" y="95.00" width="221.00" height="110.00" rx="12.0"/></clipPath>
+  <clipPath id="c3"><rect x="481.00" y="95.00" width="221.00" height="110.00" rx="12.0"/></clipPath>
+  <clipPath id="c4"><rect x="718.00" y="95.00" width="221.00" height="110.00" rx="12.0"/></clipPath>
+  <clipPath id="c5"><rect x="955.00" y="95.00" width="221.00" height="110.00" rx="12.0"/></clipPath>
+  <clipPath id="c6"><rect x="244.00" y="225.00" width="636.00" height="551.00" rx="12.0"/></clipPath>
+  <clipPath id="c7"><rect x="896.00" y="225.00" width="280.00" height="551.00" rx="12.0"/></clipPath>
+</defs>
+<rect width="1200" height="800" fill="#0f172a"/>
+<rect x="0.00" y="0.00" width="220.00" height="800.00" rx="0.0" fill="#1e293b"/>
+<circle cx="32.00" cy="38.50" r="16.00" fill="#6366f1"/>
+<text x="32.00" y="38.50" font-size="12.8" font-weight="bold" font-style="normal" fill="#ffffff" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">AD</text>
+<text x="58.00" y="29.80" font-size="14.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Acme Inc</text>
+<text x="58.00" y="49.30" font-size="11.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Admin Panel</text>
+<line x1="16.00" y1="63.50" x2="204.00" y2="63.50" stroke="#334155" stroke-width="1"/>
+<text x="16.00" y="77.70" font-size="11.0" font-weight="bold" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">MENU</text>
+<g transform="translate(16.00,92.50) scale(0.6667)" color="#6366f1" style="color:#6366f1"><path d="M3 12l9-8 9 8M5 11v8a1 1 0 001 1h3v-5h6v5h3a1 1 0 001-1v-8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="40.00" y="100.50" font-size="13.0" font-weight="bold" font-style="normal" fill="#6366f1" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Dashboard</text>
+<g transform="translate(16.00,116.70) scale(0.6667)" color="#94a3b8" style="color:#94a3b8"><path d="M4 20h16M4 20V10l4 3 4-8 4 5 4-4v14" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="40.00" y="124.70" font-size="13.0" font-weight="normal" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Analytics</text>
+<g transform="translate(16.00,140.90) scale(0.6667)" color="#94a3b8" style="color:#94a3b8"><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" stroke-width="1.8" fill="none"/><circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M21 21v-2a3 3 0 00-2-2.8" stroke="currentColor" stroke-width="1.8" fill="none"/></g>
+<text x="40.00" y="148.90" font-size="13.0" font-weight="normal" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Users</text>
+<g transform="translate(16.00,165.10) scale(0.6667)" color="#94a3b8" style="color:#94a3b8"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M22 6l-10 7L2 6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>
+<text x="40.00" y="173.10" font-size="13.0" font-weight="normal" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Messages</text>
+<g transform="translate(16.00,189.30) scale(0.6667)" color="#94a3b8" style="color:#94a3b8"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 9a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9z" stroke="currentColor" stroke-width="1.8" fill="none"/></g>
+<text x="40.00" y="197.30" font-size="13.0" font-weight="normal" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Settings</text>
+<text x="244.00" y="39.40" font-size="22.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Dashboard</text>
+<text x="244.00" y="65.90" font-size="13.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Welcome back, Admin</text>
+<rect x="1026.40" y="24.00" width="101.60" height="51.00" rx="8.0" fill="#6366f1"/>
+<g clip-path="url(#c1)">
+<text x="1077.20" y="49.50" font-size="12.0" font-weight="normal" font-style="normal" fill="#ffffff" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">New Report</text>
+</g>
+<circle cx="1158.00" cy="49.50" r="18.00" fill="#ec4899"/>
+<text x="1158.00" y="49.50" font-size="14.4" font-weight="bold" font-style="normal" fill="#ffffff" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">JD</text>
+<rect x="244.00" y="95.00" width="221.00" height="110.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c2)">
+<text x="260.00" y="119.40" font-size="12.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Total Revenue</text>
+<text x="260.00" y="150.00" font-size="26.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">$45,231</text>
+<text x="260.00" y="180.60" font-size="12.0" font-weight="normal" font-style="normal" fill="#4ade80" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">+20.1% from last month</text>
+</g>
+<rect x="481.00" y="95.00" width="221.00" height="110.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c3)">
+<text x="497.00" y="119.40" font-size="12.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Active Users</text>
+<text x="497.00" y="150.00" font-size="26.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">2,350</text>
+<text x="497.00" y="180.60" font-size="12.0" font-weight="normal" font-style="normal" fill="#4ade80" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">+15.3% from last month</text>
+</g>
+<rect x="718.00" y="95.00" width="221.00" height="110.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c4)">
+<text x="734.00" y="119.40" font-size="12.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Total Orders</text>
+<text x="734.00" y="150.00" font-size="26.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">1,247</text>
+<text x="734.00" y="180.60" font-size="12.0" font-weight="normal" font-style="normal" fill="#f87171" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">-3.2% from last month</text>
+</g>
+<rect x="955.00" y="95.00" width="221.00" height="110.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c5)">
+<text x="971.00" y="119.40" font-size="12.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Conversion</text>
+<text x="971.00" y="150.00" font-size="26.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">3.6%</text>
+<text x="971.00" y="180.60" font-size="12.0" font-weight="normal" font-style="normal" fill="#4ade80" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">+0.8% from last month</text>
+</g>
+<rect x="244.00" y="225.00" width="636.00" height="551.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c6)">
+<text x="260.00" y="251.50" font-size="15.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Revenue Over Time</text>
+<svg x="260.00" y="270.00" width="604.00" height="490.00" overflow="hidden"><line x1="29.4" y1="460.6" x2="574.6" y2="460.6" stroke="white" stroke-opacity="0.07" stroke-width="1"/><line x1="29.4" y1="352.8" x2="574.6" y2="352.8" stroke="white" stroke-opacity="0.07" stroke-width="1"/><line x1="29.4" y1="245.0" x2="574.6" y2="245.0" stroke="white" stroke-opacity="0.07" stroke-width="1"/><line x1="29.4" y1="137.2" x2="574.6" y2="137.2" stroke="white" stroke-opacity="0.07" stroke-width="1"/><line x1="29.4" y1="29.4" x2="574.6" y2="29.4" stroke="white" stroke-opacity="0.07" stroke-width="1"/><polygon points="29.4,460.6 79.0,361.1 128.5,427.4 178.1,261.6 227.7,341.2 277.2,162.1 326.8,248.3 376.3,62.6 425.9,195.2 475.5,95.7 525.0,29.4 574.6,75.8 574.6,460.6 29.4,460.6" fill="#6366f1" fill-opacity="0.18"/><polyline points="29.4,460.6 79.0,361.1 128.5,427.4 178.1,261.6 227.7,341.2 277.2,162.1 326.8,248.3 376.3,62.6 425.9,195.2 475.5,95.7 525.0,29.4 574.6,75.8" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="29.4" cy="460.6" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="79.0" cy="361.1" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="128.5" cy="427.4" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="178.1" cy="261.6" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="227.7" cy="341.2" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="277.2" cy="162.1" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="326.8" cy="248.3" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="376.3" cy="62.6" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="425.9" cy="195.2" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="475.5" cy="95.7" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="525.0" cy="29.4" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/><circle cx="574.6" cy="75.8" r="3.5" fill="#6366f1" stroke="white" stroke-opacity="0.3" stroke-width="1.5"/></svg>
+</g>
+<rect x="896.00" y="225.00" width="280.00" height="551.00" rx="12.0" fill="#1e293b"/>
+<g clip-path="url(#c7)">
+<text x="912.00" y="251.50" font-size="15.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Traffic Sources</text>
+<svg x="912.00" y="270.00" width="248.00" height="490.00" overflow="hidden"><path d="M 69.0 69.0 L 69.00 3.00 A 66.0 66.0 0 0 1 107.79 122.40 Z" fill="#6366f1"/><path d="M 69.0 69.0 L 107.79 122.40 A 66.0 66.0 0 0 1 15.60 107.79 Z" fill="#ec4899"/><path d="M 69.0 69.0 L 15.60 107.79 A 66.0 66.0 0 0 1 15.60 30.21 Z" fill="#14b8a6"/><path d="M 69.0 69.0 L 15.60 30.21 A 66.0 66.0 0 0 1 69.00 3.00 Z" fill="#f59e0b"/><circle cx="69.0" cy="69.0" r="36.3" fill="#1e293b"/><rect x="150.0" y="14.0" width="10" height="10" rx="2" fill="#6366f1"/><text x="165.0" y="23.0" font-size="11" fill="#cbd5e1" font-family="system-ui,sans-serif">Direct</text><rect x="150.0" y="36.0" width="10" height="10" rx="2" fill="#ec4899"/><text x="165.0" y="45.0" font-size="11" fill="#cbd5e1" font-family="system-ui,sans-serif">Social</text><rect x="150.0" y="58.0" width="10" height="10" rx="2" fill="#14b8a6"/><text x="165.0" y="67.0" font-size="11" fill="#cbd5e1" font-family="system-ui,sans-serif">Organic</text><rect x="150.0" y="80.0" width="10" height="10" rx="2" fill="#f59e0b"/><text x="165.0" y="89.0" font-size="11" fill="#cbd5e1" font-family="system-ui,sans-serif">Referral</text></svg>
+</g>
+</svg>

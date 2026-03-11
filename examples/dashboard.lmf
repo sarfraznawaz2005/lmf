@@ -1,0 +1,58 @@
+#LMF1 1200x800 bg:#0f172a
+
+R w:f h:f
+  C w:220 bg:#1e293b p:20,16 g:6
+    R g:10 al:center
+      Av s:32 bg:#6366f1 "AD"
+      C g:2
+        T s:14 b c:#f1f5f9 "Acme Inc"
+        T s:11 c:#64748b "Admin Panel"
+    Dv c:#334155
+    T s:11 b c:#64748b "MENU"
+    R g:8 al:center
+      Ic name:home s:16 c:#6366f1
+      T s:13 b c:#6366f1 "Dashboard"
+    R g:8 al:center
+      Ic name:chart s:16 c:#94a3b8
+      T s:13 c:#94a3b8 "Analytics"
+    R g:8 al:center
+      Ic name:users s:16 c:#94a3b8
+      T s:13 c:#94a3b8 "Users"
+    R g:8 al:center
+      Ic name:mail s:16 c:#94a3b8
+      T s:13 c:#94a3b8 "Messages"
+    R g:8 al:center
+      Ic name:settings s:16 c:#94a3b8
+      T s:13 c:#94a3b8 "Settings"
+  C w:f p:24 g:20
+    R al:center jc:between w:f
+      C g:2
+        T s:22 b c:#f1f5f9 "Dashboard"
+        T s:13 c:#64748b "Welcome back, Admin"
+      R g:12 al:center
+        Bt s:12 bg:#6366f1 r:8 "New Report"
+        Av s:36 bg:#ec4899 "JD"
+    R g:16 w:f
+      C w:f bg:#1e293b r:12 p:16 g:4
+        T s:12 c:#64748b "Total Revenue"
+        T s:26 b c:#f1f5f9 "$45,231"
+        T s:12 c:#4ade80 "+20.1% from last month"
+      C w:f bg:#1e293b r:12 p:16 g:4
+        T s:12 c:#64748b "Active Users"
+        T s:26 b c:#f1f5f9 "2,350"
+        T s:12 c:#4ade80 "+15.3% from last month"
+      C w:f bg:#1e293b r:12 p:16 g:4
+        T s:12 c:#64748b "Total Orders"
+        T s:26 b c:#f1f5f9 "1,247"
+        T s:12 c:#f87171 "-3.2% from last month"
+      C w:f bg:#1e293b r:12 p:16 g:4
+        T s:12 c:#64748b "Conversion"
+        T s:26 b c:#f1f5f9 "3.6%"
+        T s:12 c:#4ade80 "+0.8% from last month"
+    R g:16 w:f h:f
+      C w:f h:f bg:#1e293b r:12 p:16 g:8
+        T s:15 b c:#f1f5f9 "Revenue Over Time"
+        Ch type:area d:30,45,35,60,48,75,62,90,70,85,95,88 c:#6366f1 h:f w:f
+      C w:280 h:f bg:#1e293b r:12 p:16 g:8
+        T s:15 b c:#f1f5f9 "Traffic Sources"
+        Ch type:donut d:40,25,20,15 colors:#6366f1,#ec4899,#14b8a6,#f59e0b l:Direct,Social,Organic,Referral h:f w:f

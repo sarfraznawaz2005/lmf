@@ -1,0 +1,62 @@
+#LMF1 390x844 bg:#0f172a
+
+C w:f h:f
+  C w:f h:f p:20,16 g:16
+    R al:center jc:between w:f
+      C g:2
+        T s:12 c:#64748b "Good morning"
+        T s:20 b c:#f1f5f9 "Sarah"
+      Av s:40 bg:#ec4899 "SK"
+    C bg:#1e293b r:16 p:16 g:12 w:f
+      T s:13 c:#64748b "Total Balance"
+      T s:32 b c:#f1f5f9 "$12,580.00"
+      R g:8 w:f
+        Bt w:f s:13 bg:#6366f1 r:10 "Send"
+        Bt w:f s:13 bg:#334155 r:10 "Request"
+        Bt w:f s:13 bg:#334155 r:10 "Top Up"
+    T s:16 b c:#f1f5f9 "Quick Stats"
+    R g:12 w:f
+      C w:f bg:#1e293b r:12 p:12 g:4
+        T s:11 c:#64748b "Income"
+        T s:18 b c:#4ade80 "$3,200"
+        Ch type:spark d:20,35,28,45,38,52 c:#4ade80 h:40 w:f
+      C w:f bg:#1e293b r:12 p:12 g:4
+        T s:11 c:#64748b "Expenses"
+        T s:18 b c:#f87171 "$1,840"
+        Ch type:spark d:40,32,45,28,35,22 c:#f87171 h:40 w:f
+    T s:16 b c:#f1f5f9 "Transactions"
+    C g:12 w:f
+      R al:center jc:between w:f bg:#1e293b r:12 p:12
+        R g:12 al:center
+          Av s:36 bg:#14b8a6 "NF"
+          C g:2
+            T s:14 b c:#f1f5f9 "Netflix"
+            T s:11 c:#64748b "Entertainment"
+        T s:14 b c:#f87171 "-$15.99"
+      R al:center jc:between w:f bg:#1e293b r:12 p:12
+        R g:12 al:center
+          Av s:36 bg:#f59e0b "SP"
+          C g:2
+            T s:14 b c:#f1f5f9 "Spotify"
+            T s:11 c:#64748b "Music"
+        T s:14 b c:#f87171 "-$9.99"
+      R al:center jc:between w:f bg:#1e293b r:12 p:12
+        R g:12 al:center
+          Av s:36 bg:#6366f1 "FV"
+          C g:2
+            T s:14 b c:#f1f5f9 "Fiverr"
+            T s:11 c:#64748b "Freelance"
+        T s:14 b c:#4ade80 "+$850.00"
+  R w:f bg:#1e293b p:12,0 jc:around al:center
+    C al:center g:2 p:8
+      Ic name:home s:20 c:#6366f1
+      T s:10 c:#6366f1 "Home"
+    C al:center g:2 p:8
+      Ic name:chart s:20 c:#64748b
+      T s:10 c:#64748b "Stats"
+    C al:center g:2 p:8
+      Ic name:heart s:20 c:#64748b
+      T s:10 c:#64748b "Saved"
+    C al:center g:2 p:8
+      Ic name:settings s:20 c:#64748b
+      T s:10 c:#64748b "More"

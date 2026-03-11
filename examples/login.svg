@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="650">
+<defs>
+  <clipPath id="c1"><rect x="40.00" y="89.50" width="420.00" height="471.00" rx="16.0"/></clipPath>
+  <clipPath id="c2"><rect x="72.00" y="286.70" width="356.00" height="40.00" rx="8.0"/></clipPath>
+  <clipPath id="c3"><rect x="72.00" y="363.50" width="356.00" height="40.00" rx="8.0"/></clipPath>
+  <clipPath id="c4"><rect x="72.00" y="454.30" width="356.00" height="36.00" rx="8.0"/></clipPath>
+</defs>
+<rect width="500" height="650" fill="#0f172a"/>
+<rect x="40.00" y="89.50" width="420.00" height="471.00" rx="16.0" fill="#1e293b"/>
+<g clip-path="url(#c1)">
+<circle cx="250.00" cy="149.50" r="28.00" fill="#6366f1"/>
+<text x="250.00" y="149.50" font-size="22.400000000000002" font-weight="bold" font-style="normal" fill="#ffffff" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">A</text>
+<text x="72.00" y="200.90" font-size="22.0" font-weight="bold" font-style="normal" fill="#f1f5f9" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Welcome Back</text>
+<text x="72.00" y="234.10" font-size="14.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Sign in to your account</text>
+<text x="72.00" y="272.30" font-size="12.0" font-weight="bold" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Email</text>
+<rect x="72.00" y="286.70" width="356.00" height="40.00" rx="8.0" fill="#0f172a"/>
+<rect x="72.50" y="287.20" width="355.00" height="39.00" rx="7.5" fill="none" stroke="#334155" stroke-width="1.0"/>
+<g clip-path="url(#c2)">
+<text x="84.00" y="306.70" font-size="14.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">you@example.com</text>
+</g>
+<text x="72.00" y="349.10" font-size="12.0" font-weight="bold" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Password</text>
+<rect x="72.00" y="363.50" width="356.00" height="40.00" rx="8.0" fill="#0f172a"/>
+<rect x="72.50" y="364.00" width="355.00" height="39.00" rx="7.5" fill="none" stroke="#334155" stroke-width="1.0"/>
+<g clip-path="url(#c3)">
+<text x="84.00" y="383.50" font-size="14.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Enter password</text>
+</g>
+<rect x="72.50" y="418.40" width="15.00" height="15.00" rx="3.5" fill="none" stroke="#6366f1" stroke-width="1.0"/>
+<text x="94.00" y="425.90" font-size="12.0" font-weight="normal" font-style="normal" fill="#94a3b8" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Remember me</text>
+<text x="316.64" y="425.90" font-size="12.0" font-weight="normal" font-style="normal" fill="#6366f1" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Forgot password?</text>
+<rect x="72.00" y="454.30" width="356.00" height="36.00" rx="8.0" fill="#6366f1"/>
+<g clip-path="url(#c4)">
+<text x="250.00" y="472.30" font-size="14.0" font-weight="bold" font-style="normal" fill="#ffffff" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Sign In</text>
+</g>
+<text x="138.67" y="519.40" font-size="13.0" font-weight="normal" font-style="normal" fill="#64748b" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Don&#x27;t have an account?</text>
+<text x="308.55" y="519.40" font-size="13.0" font-weight="bold" font-style="normal" fill="#6366f1" text-anchor="start" dominant-baseline="central" font-family="system-ui,Segoe UI,Arial,sans-serif">Sign up</text>
+</g>
+</svg>

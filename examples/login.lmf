@@ -1,0 +1,24 @@
+#LMF1 500x650 bg:#0f172a
+
+C w:f h:f al:center jc:center p:40
+  C w:f bg:#1e293b r:16 p:32 g:20 al:center
+    C g:8 al:center
+      Av s:56 bg:#6366f1 "A"
+      T s:22 b c:#f1f5f9 "Welcome Back"
+      T s:14 c:#64748b "Sign in to your account"
+    C g:14 w:f
+      C g:6 w:f
+        T s:12 b c:#94a3b8 "Email"
+        In w:f s:14 bg:#0f172a bd:1,#334155 r:8 "you@example.com"
+      C g:6 w:f
+        T s:12 b c:#94a3b8 "Password"
+        In w:f s:14 bg:#0f172a bd:1,#334155 r:8 "Enter password"
+      R jc:between al:center w:f
+        R g:6 al:center
+          B w:16 h:16 r:4 bd:1,#6366f1
+          T s:12 c:#94a3b8 "Remember me"
+        T s:12 c:#6366f1 "Forgot password?"
+    Bt w:f s:14 b bg:#6366f1 r:8 "Sign In"
+    R g:4 al:center jc:center w:f
+      T s:13 c:#64748b "Don't have an account?"
+      T s:13 b c:#6366f1 "Sign up"

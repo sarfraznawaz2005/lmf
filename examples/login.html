@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#0f172a}
+body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+color:#e2e8f0;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+#lmf-canvas{width:500px;min-height:650px;display:flex;flex-direction:column;
+transform-origin:top left;background:#0f172a}
+</style></head>
+<body>
+<div id="lmf-canvas"><div style="display:flex;flex-direction:column;width:100%;flex:1;min-height:0;padding:40.0px 40.0px 40.0px 40.0px;align-items:center;justify-content:center"><div style="display:flex;flex-direction:column;width:100%;padding:32.0px 32.0px 32.0px 32.0px;gap:20px;background:#1e293b;border-radius:16px;align-items:center"><div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="background:#6366f1;font-size:22px;width:56px;height:56px;min-width:56px;border-radius:50%;color:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;line-height:1">A</div><div style="color:#f1f5f9;font-size:22px;font-weight:700;white-space:nowrap">Welcome Back</div><div style="color:#64748b;font-size:14px;white-space:nowrap">Sign in to your account</div></div><div style="display:flex;flex-direction:column;width:100%;gap:14px"><div style="display:flex;flex-direction:column;width:100%;gap:6px"><div style="color:#94a3b8;font-size:12px;font-weight:700;white-space:nowrap">Email</div><div style="width:100%;background:#0f172a;font-size:14.0px;border-radius:8.0px;border:1px solid #334155;display:flex;align-items:center;padding:8px 12px;color:#64748b;flex:1;min-width:0">you@example.com</div></div><div style="display:flex;flex-direction:column;width:100%;gap:6px"><div style="color:#94a3b8;font-size:12px;font-weight:700;white-space:nowrap">Password</div><div style="width:100%;background:#0f172a;font-size:14.0px;border-radius:8.0px;border:1px solid #334155;display:flex;align-items:center;padding:8px 12px;color:#64748b;flex:1;min-width:0">Enter password</div></div><div style="display:flex;flex-direction:row;width:100%;align-items:center;justify-content:space-between"><div style="display:flex;flex-direction:row;gap:6px;align-items:center"><div style="display:flex;flex-direction:column;width:16px;height:16px;border-radius:4px;border:1.0px solid #6366f1"></div><div style="color:#94a3b8;font-size:12px;white-space:nowrap">Remember me</div></div><div style="color:#6366f1;font-size:12px;white-space:nowrap">Forgot password?</div></div></div><div style="width:100%;background:#6366f1;font-size:14.0px;font-weight:600;border-radius:8.0px;display:flex;align-items:center;justify-content:center;padding:8px 16px;cursor:pointer;white-space:nowrap;flex-shrink:0;color:#ffffff;border:none">Sign In</div><div style="display:flex;flex-direction:row;width:100%;gap:4px;align-items:center;justify-content:center"><div style="color:#64748b;font-size:13px;white-space:nowrap">Don&#x27;t have an account?</div><div style="color:#6366f1;font-size:13px;font-weight:700;white-space:nowrap">Sign up</div></div></div></div></div>
+<script>
+(function(){
+  var el=document.getElementById('lmf-canvas');
+  function fit(){
+    var s=window.innerWidth/500;
+    el.style.transform='scale('+s+')';
+    document.body.style.height=Math.ceil(s*el.scrollHeight)+'px';
+  }
+  fit();
+  window.addEventListener('resize',fit);
+})();
+</script>
+</body></html>
