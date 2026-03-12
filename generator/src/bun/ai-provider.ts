@@ -12,6 +12,7 @@ export class AIProvider {
   private anthropic: ReturnType<typeof createAnthropic> | null = null;
   private openai: ReturnType<typeof createOpenAI> | null = null;
   private openaiClient: OpenAI | null = null;
+  private abortController: AbortController | null = null;
 
   constructor(config: AppConfig) {
     this.config = config;
@@ -59,60 +60,84 @@ export class AIProvider {
 
   // Handle messages - generates LMF or conversational response based on user intent
   async generateLMF(request: LMFGenerationRequest): Promise<{ text: string; usage: { totalTokens: number } }> {
-    const { prompt, model: modelName, systemPrompt, conversationHistory } = request;
+    const { prompt, model: modelName, systemPrompt, currentLmf } = request;
 
     console.log('[AI] generateLMF called');
     console.log('[AI] Provider:', this.config.provider);
     console.log('[AI] Model:', modelName || 'default');
+    console.log('[AI] Has current LMF:', !!currentLmf);
 
-    // For custom providers, use direct OpenAI client to avoid API endpoint issues
-    if (this.config.provider === 'custom' && this.openaiClient) {
-      return this.generateWithOpenAIClient(prompt, modelName, systemPrompt, conversationHistory);
-    }
+    // Create new abort controller for this request
+    this.abortController = new AbortController();
 
-    if (!this.anthropic && !this.openai) {
-      throw new Error('No AI provider configured. Please add an API key in settings.');
-    }
-
-    let model: LanguageModel;
-
-    if (this.config.provider === 'anthropic') {
-      if (!this.anthropic) {
-        throw new Error('Anthropic API key not configured');
+    try {
+      // For custom providers, use direct OpenAI client to avoid API endpoint issues
+      if (this.config.provider === 'custom' && this.openaiClient) {
+        return await this.generateWithOpenAIClient(prompt, modelName, systemPrompt, currentLmf);
       }
-      model = this.anthropic(modelName || 'claude-3-5-sonnet-20241022');
-    } else {
-      if (!this.openai) {
-        throw new Error('OpenAI API key not configured');
+
+      if (!this.anthropic && !this.openai) {
+        throw new Error('No AI provider configured. Please add an API key in settings.');
       }
-      model = this.openai(modelName || 'gpt-4-turbo');
+
+      let model: LanguageModel;
+
+      if (this.config.provider === 'anthropic') {
+        if (!this.anthropic) {
+          throw new Error('Anthropic API key not configured');
+        }
+        model = this.anthropic(modelName || 'claude-3-5-sonnet-20241022');
+      } else {
+        if (!this.openai) {
+          throw new Error('OpenAI API key not configured');
+        }
+        model = this.openai(modelName || 'gpt-4-turbo');
+      }
+
+      // Build user message - include current LMF context if available
+      let userMessage = prompt;
+      if (currentLmf && currentLmf.trim().length > 0) {
+        userMessage = `Here is the current LMF design:\n\n<lmf>\n${currentLmf}\n</lmf>\n\nNow, ${prompt}`;
+      }
+
+      // Build messages array with just the current prompt
+      const messages = [{ role: 'user' as const, content: userMessage }];
+
+      console.log('[AI] Messages count:', messages.length);
+      console.log('[AI] User message length:', userMessage.length);
+
+      const result = await generateText({
+        model,
+        system: systemPrompt,
+        messages,
+        abortSignal: this.abortController.signal,
+      });
+
+      console.log('[AI] generateText succeeded');
+
+      // Return serializable response
+      return {
+        text: String(result.text),
+        usage: {
+          totalTokens: Number(result.usage?.totalTokens || 0),
+        },
+      };
+    } finally {
+      // Clear abort controller after request completes
+      this.abortController = null;
     }
+  }
 
-    // Build messages array with conversation history
-    const messages = conversationHistory && conversationHistory.length > 0
-      ? conversationHistory.map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content }))
-      : [];
-
-    // Add current prompt as user message
-    messages.push({ role: 'user', content: prompt });
-
-    console.log('[AI] Messages count:', messages.length);
-
-    const result = await generateText({
-      model,
-      system: systemPrompt,
-      messages,
-    });
-
-    console.log('[AI] generateText succeeded');
-
-    // Return serializable response
-    return {
-      text: String(result.text),
-      usage: {
-        totalTokens: Number(result.usage?.totalTokens || 0),
-      },
-    };
+  // Cancel the current generation
+  cancelGeneration(): boolean {
+    if (this.abortController) {
+      console.log('[AI] Cancelling generation');
+      this.abortController.abort();
+      this.abortController = null;
+      return true;
+    }
+    console.log('[AI] No generation to cancel');
+    return false;
   }
 
   // Use direct OpenAI client for custom providers
@@ -120,12 +145,18 @@ export class AIProvider {
     prompt: string,
     modelName: string | undefined,
     systemPrompt: string | undefined,
-    conversationHistory: Array<{ role: string; content: string }> | undefined
+    currentLmf?: string
   ): Promise<{ text: string; usage: { totalTokens: number } }> {
     console.log('[AI] Using direct OpenAI client for custom provider');
 
     if (!this.openaiClient) {
       throw new Error('OpenAI client not initialized');
+    }
+
+    // Build user message - include current LMF context if available
+    let userMessage = prompt;
+    if (currentLmf && currentLmf.trim().length > 0) {
+      userMessage = `Here is the current LMF design:\n\n<lmf>\n${currentLmf}\n</lmf>\n\nNow, ${prompt}`;
     }
 
     const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
@@ -134,26 +165,24 @@ export class AIProvider {
       messages.push({ role: 'system', content: systemPrompt });
     }
 
-    if (conversationHistory && conversationHistory.length > 0) {
-      for (const msg of conversationHistory) {
-        messages.push({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-        });
-      }
-    }
-
-    messages.push({ role: 'user', content: prompt });
+    messages.push({ role: 'user', content: userMessage });
 
     console.log('[AI] Sending chat completion request with', messages.length, 'messages');
+    console.log('[AI] User message length:', userMessage.length);
 
-    const response = await this.openaiClient.chat.completions.create({
-      model: modelName || 'gpt-4-turbo',
-      messages,
-    });
+    try {
+      const response = await this.openaiClient.chat.completions.create(
+        {
+          model: modelName || 'gpt-4-turbo',
+          messages,
+        },
+        {
+          signal: this.abortController?.signal,
+        }
+      );
 
-    console.log('[AI] Chat completion received, response type:', typeof response);
-    console.log('[AI] Response has choices:', !!response.choices, 'choices length:', response.choices?.length);
+      console.log('[AI] Chat completion received, response type:', typeof response);
+      console.log('[AI] Response has choices:', !!response.choices, 'choices length:', response.choices?.length);
 
     // Defensive checks for response structure
     if (!response) {
@@ -177,6 +206,10 @@ export class AIProvider {
         totalTokens: response.usage?.total_tokens || 0,
       },
     };
+    } catch (error) {
+      console.error('[AI] OpenAI client error:', error);
+      throw error;
+    }
   }
 
   async fetchModels(): Promise<string[]> {

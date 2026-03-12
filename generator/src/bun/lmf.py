@@ -1287,11 +1287,7 @@ def render_png(source: str, output: str, scale: int = 1):
     try:
         import cairosvg
     except ImportError:
-        svg_path = Path(output).with_suffix(".svg")
-        svg_path.write_text(svg, encoding="utf-8")
-        print(f"cairosvg not installed — saved SVG to: {svg_path}")
-        print("Install PNG support: pip install cairosvg")
-        return
+        raise RuntimeError("cairosvg not installed. Install with: pip install cairosvg")
 
     cairosvg.svg2png(
         bytestring=svg.encode("utf-8"),
@@ -1343,7 +1339,7 @@ def main():
             svg = render_svg(src)
             print(svg, end="")
         elif args.output.endswith(".png"):
-            render_png(args.output, scale=args.scale)
+            render_png(src, args.output, scale=args.scale)
             print(f"Rendered PNG: {args.output}", file=sys.stderr)
         elif args.output.endswith(".html"):
             html = render_html(src)

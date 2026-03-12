@@ -4,6 +4,7 @@ import { $ } from 'bun';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
+import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -120,12 +121,12 @@ export class Renderer {
     try {
       const scale = options.scale || 1;
 
-      // Create temporary file for LMF input
-      const tempLmfPath = join(__dirname, 'temp', 'input.lmf');
-      const tempOutputPath = options.outputPath || join(__dirname, 'temp', `output.${options.format}`);
+      // Use OS temp directory for better compatibility with bundled apps
+      const tempDir = join(tmpdir(), 'lmf-generator');
+      const tempLmfPath = join(tempDir, 'input.lmf');
+      const tempOutputPath = options.outputPath || join(tempDir, `output.${options.format}`);
 
       // Ensure temp directory exists
-      const tempDir = dirname(tempLmfPath);
       await $`mkdir -p ${tempDir}`.quiet();
 
       // Write LMF to temp file
@@ -144,7 +145,12 @@ export class Renderer {
         args.push('--scale', scale.toString());
       }
 
+      console.log('[Renderer] Running command:', this.pythonPath, args.join(' '));
+
       const result = await $`${this.pythonPath} ${args}`.quiet().nothrow();
+
+      console.log('[Renderer] Exit code:', result.exitCode);
+      console.log('[Renderer] Stderr:', result.stderr?.toString() || 'empty');
 
       if (result.exitCode !== 0) {
         return {
@@ -152,6 +158,10 @@ export class Renderer {
           error: result.stderr?.toString() || 'Rendering failed',
         };
       }
+
+      // Check if output file exists
+      const fileExists = existsSync(tempOutputPath);
+      console.log('[Renderer] Output file exists:', fileExists, 'at path:', tempOutputPath);
 
       // Read output
       let content: string | undefined;

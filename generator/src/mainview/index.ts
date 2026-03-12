@@ -29,12 +29,10 @@ interface Settings {
 // DOM Elements
 const elements = {
 	// Main view
-	settingsBtn: document.getElementById("settings-btn")!,
-	exportBtn: document.getElementById("export-btn")!,
-	toggleViewBtn: document.getElementById("toggle-view-btn")!,
-	refreshBtn: document.getElementById("refresh-btn")!,
-	promptInput: document.getElementById("prompt-input")!,
-	sendBtn: document.getElementById("send-btn")!,
+	settingsBtn: document.getElementById("settings-btn")! as HTMLButtonElement,
+	exportBtn: document.getElementById("export-btn")! as HTMLButtonElement,
+	promptInput: document.getElementById("prompt-input")! as HTMLTextAreaElement,
+	sendBtn: document.getElementById("send-btn")! as HTMLButtonElement,
 	svgPreview: document.getElementById("svg-preview")!,
 	lmfCodeView: document.getElementById("lmf-code-view")!,
 	emptyState: document.getElementById("empty-state")!,
@@ -46,13 +44,9 @@ const elements = {
 	providerStatus: document.getElementById("provider-status")!,
 	connectionBadge: document.getElementById("connection-badge")!,
 	chatInputWrapper: document.querySelector(".chat-input-wrapper") as HTMLElement,
-
-	// Sidebar
-	chatSidebar: document.getElementById("chat-sidebar")!,
-	chatHistory: document.getElementById("chat-history")!,
-	toggleSidebarBtn: document.getElementById("toggle-sidebar-btn")!,
-	closeSidebarBtn: document.getElementById("close-sidebar")!,
-	clearChatBtn: document.getElementById("clear-chat-btn")!,
+	conversationView: document.getElementById("conversation-view")!,
+	conversationContent: document.getElementById("conversation-content")!,
+	errorMessage: document.getElementById("error-message")!,
 
 	// Settings modal
 	settingsModal: document.getElementById("settings-modal")!,
@@ -66,11 +60,10 @@ let state = {
 	isSvgView: true,
 	currentLmf: "",
 	currentSvg: "",
+	currentConversation: "",
 	settings: null as Settings | null,
 	isGenerating: false,
 	lastPrompt: "",
-	// Conversation history (session only, max 25 messages)
-	conversationHistory: [] as Array<{ role: "user" | "assistant"; content: string }>,
 };
 
 // Initialize Electroview with RPC
@@ -93,20 +86,16 @@ const rpc = Electroview.defineRPC({
 					if (input) {
 						input.focus();
 						input.selectionStart = input.selectionEnd = input.value.length;
-						console.log('[WebView] Focus attempted, activeElement:', document.activeElement?.id, 'focused:', document.activeElement === input);
 					}
 				};
-				// Try multiple times with delays
+				
 				attemptFocus();
-				setTimeout(attemptFocus, 50);
-				setTimeout(attemptFocus, 150);
-				setTimeout(attemptFocus, 300);
 			},
-		},
+		} as any,
 	},
 });
 
-const electroview = new Electroview({ rpc });
+const electroview = new Electroview({ rpc }) as any;
 
 // Initialize
 async function init() {
@@ -115,34 +104,16 @@ async function init() {
 	updateConnectionStatus();
 	updateButtonsState(false);
 
-	// Debug: Track focus changes
-	document.addEventListener('focusin', (e) => {
-		console.log('[WebView] Focus moved to:', (e.target as Element)?.id || (e.target as Element)?.tagName, 'at', Date.now());
-	});
-
 	// Focus chat input on startup - delay to ensure all init is complete
 	setTimeout(() => {
-		console.log('[WebView] Before focus, activeElement:', document.activeElement?.id);
 		elements.promptInput.focus();
-		console.log('[WebView] After focus, activeElement:', document.activeElement?.id);
 	}, 500);
-
-	// Check what steals focus later
-	setTimeout(() => {
-		console.log('[WebView] 2s later, activeElement:', document.activeElement?.id);
-	}, 2000);
-
-	// Re-focus when window gets focus (handles OS focus changes)
-	window.addEventListener('focus', () => {
-		console.log('[WebView] Window focused, re-focusing input');
-		elements.promptInput.focus();
-	});
 }
 
 // Load settings from backend
 async function loadSettings() {
 	try {
-		const response: RPCResponse = await electroview.rpc.request.getSettings();
+		const response = await electroview.rpc.request.getSettings() as RPCResponse;
 		if (response?.success) {
 			state.settings = response.data;
 			updateProviderStatus();
@@ -159,16 +130,15 @@ function setupEventListeners() {
 		openSettings();
 	});
 	elements.exportBtn.addEventListener("click", handleExport);
-	elements.toggleViewBtn.addEventListener("click", toggleView);
-	elements.refreshBtn.addEventListener("click", refreshPreview);
-
-	// Sidebar toggle
-	elements.toggleSidebarBtn.addEventListener("click", toggleSidebar);
-	elements.closeSidebarBtn.addEventListener("click", () => toggleSidebar(false));
-	elements.clearChatBtn.addEventListener("click", clearConversationHistory);
 
 	// Chat input
-	elements.sendBtn.addEventListener("click", sendPrompt);
+	elements.sendBtn.addEventListener("click", () => {
+		if (state.isGenerating) {
+			cancelGeneration();
+		} else {
+			sendPrompt();
+		}
+	});
 	elements.promptInput.addEventListener("keydown", handleKeydown);
 	elements.promptInput.addEventListener("input", autoResize);
 
@@ -200,14 +170,13 @@ function handleGlobalKeydown(e: KeyboardEvent) {
 		handleExport();
 	}
 
-	// Ctrl+Shift+L - Clear chat
-	if (e.ctrlKey && e.shiftKey && (e.key === "l" || e.key === "L")) {
-		e.preventDefault();
-		clearChat();
-	}
-
 	// Escape - Cancel generation / Close modal
 	if (e.key === "Escape") {
+		if (state.isGenerating) {
+			e.preventDefault();
+			cancelGeneration();
+			return;
+		}
 		if (!elements.settingsModal.classList.contains("hidden")) {
 			closeSettings();
 		}
@@ -222,54 +191,54 @@ async function sendPrompt() {
 	// Save the last prompt
 	state.lastPrompt = prompt;
 
-	// Add user message to conversation history and render it
-	addToConversationHistory("user", prompt);
-	renderChatMessage("user", prompt);
-
 	// Clear input after sending
 	elements.promptInput.value = "";
 	autoResize();
+
+	// Clear any previous errors
+	hideError();
 
 	setLoading(true);
 	updateStatus("Generating...");
 	console.log('[WebView] Sending prompt:', prompt.substring(0, 50) + '...');
 
 	try {
-		// Send conversation history (last 25 messages) to backend
 		console.log('[WebView] Calling RPC generateLmf...');
-		const response: RPCResponse = await electroview.rpc.request.generateLmf({
+		// Send current LMF if we have one (for iterative changes)
+		const currentLmf = state.currentLmf || "";
+		const response = await electroview.rpc.request.generateLmf({
 			prompt,
-			conversationHistory: state.conversationHistory.slice(0, -1), // Exclude current prompt (already added)
+			currentLmf: currentLmf || undefined,
 		});
 		console.log('[WebView] RPC response received:', response);
 		if (response?.success) {
 			// Check if this is a conversational response (not a design)
 			if (response.data.isConversational) {
 				console.log('[WebView] Received conversational response');
-				// Show conversational response
-				addToConversationHistory("assistant", response.data.response);
-				renderChatMessage("assistant", response.data.response);
-				updateTokenCount(response.data.tokens);
+				// It's a conversational response - show it in conversation view
+				state.currentConversation = response.data.response || "";
+				// Keep currentLmf and currentSvg so user can still reference them for changes
+
+				showConversation(state.currentConversation);
 				updateStatus("Ready");
+				// Disable export/toggle for conversational responses
+				updateButtonsState(false);
+				updateTokenCount(0);
 			} else {
 				console.log('[WebView] Received design response, LMF length:', response.data.lmf?.length, 'SVG length:', response.data.svg?.length);
 				// It's a design response - render it
 				state.currentLmf = response.data.lmf;
 				state.currentSvg = response.data.svg;
-
-				// Use fullResponse (with <lmf> tags) for chat display, or fall back to lmf
-				const displayText = response.data.fullResponse || response.data.lmf;
-
-				// Add AI response to conversation history and render it
-				addToConversationHistory("assistant", displayText);
-				renderChatMessage("assistant", displayText, true); // true = isDesignResponse
+				state.currentConversation = "";
 
 				// Show SVG preview by default
+				state.isSvgView = true;
 				renderSvg(state.currentSvg);
 				showPreview();
 
-				// Update token count
-				updateTokenCount(response.data.tokens);
+				// Update token count based on LMF code length (~4 chars per token)
+				const lmfTokens = state.currentLmf ? Math.ceil(state.currentLmf.length / 4) : 0;
+				updateTokenCount(lmfTokens);
 
 				// Enable buttons now that we have content
 				updateButtonsState(true);
@@ -280,10 +249,15 @@ async function sendPrompt() {
 		}
 	} catch (error) {
 		console.error('[WebView] Error in sendPrompt:', error);
-		showError(error instanceof Error ? error.message : "Generation failed");
+		// Check if this was a cancellation
+		if (error instanceof Error && error.message?.includes("cancelled")) {
+			updateStatus("Generation cancelled");
+		} else {
+			showError(error instanceof Error ? error.message : "Generation failed");
+		}
 	} finally {
 		setLoading(false);
-		updateStatus("Ready");
+		updateStatus(state.isGenerating ? "Generating..." : "Ready");
 		// Refocus chat input after response
 		elements.promptInput.focus();
 	}
@@ -293,12 +267,22 @@ function handleKeydown(e: KeyboardEvent) {
 	// Enter - Send prompt (Shift+Enter for new line)
 	if (e.key === "Enter" && !e.shiftKey) {
 		e.preventDefault();
-		sendPrompt();
+		if (!state.isGenerating) {
+			sendPrompt();
+		}
+		return;
 	}
 
 	// Shift+Enter - New line (default textarea behavior, but explicitly allowed)
 	if (e.key === "Enter" && e.shiftKey) {
 		// Allow default behavior - new line
+		return;
+	}
+
+	// Escape - Cancel generation if running
+	if (e.key === "Escape" && state.isGenerating) {
+		e.preventDefault();
+		cancelGeneration();
 		return;
 	}
 
@@ -322,19 +306,33 @@ function autoResize() {
 }
 
 function toggleView() {
+	// If showing conversation, switch to SVG/LMF if we have content
+	if (state.currentConversation && !state.currentLmf) {
+		// No LMF content to toggle to, stay in conversation view
+		return;
+	}
+
 	state.isSvgView = !state.isSvgView;
+
+	// Hide conversation view when toggling
+	elements.conversationView.classList.remove("active");
+	elements.conversationView.classList.add("hidden");
 
 	if (state.isSvgView) {
 		elements.svgPreview.classList.remove("hidden");
+		elements.svgPreview.classList.add("active");
 		elements.lmfCodeView.classList.add("hidden");
+		elements.lmfCodeView.classList.remove("active");
 		elements.previewModeBadge.textContent = "SVG";
 
 		if (state.currentSvg) {
-			renderSvg(state.currentSvg);
+			elements.svgContainer.innerHTML = state.currentSvg;
 		}
 	} else {
 		elements.svgPreview.classList.add("hidden");
+		elements.svgPreview.classList.remove("active");
 		elements.lmfCodeView.classList.remove("hidden");
+		elements.lmfCodeView.classList.add("active");
 		elements.previewModeBadge.textContent = "LMF";
 
 		if (state.currentLmf) {
@@ -347,121 +345,73 @@ function renderSvg(svg: string) {
 	elements.svgContainer.innerHTML = svg;
 }
 
-function showPreview() {
+function showConversation(text: string) {
+	// Hide other views
 	elements.emptyState.classList.add("hidden");
+	elements.svgPreview.classList.remove("active");
+	elements.svgPreview.classList.add("hidden");
+	elements.lmfCodeView.classList.add("hidden");
+
+	// Show conversation view
+	elements.conversationView.classList.remove("hidden");
+	elements.conversationView.classList.add("active");
+
+	// Convert markdown-like text to HTML
+	elements.conversationContent.innerHTML = formatConversationText(text);
+
+	// Update badge
+	elements.previewModeBadge.textContent = "Message";
 }
 
-function refreshPreview() {
-	if (state.currentSvg && state.isSvgView) {
-		renderSvg(state.currentSvg);
+function formatConversationText(text: string): string {
+	// Simple markdown to HTML conversion
+	let html = text
+		// Escape HTML
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		// Bold
+		.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+		.replace(/\*(.+?)\*/g, '<em>$1</em>')
+		// Code blocks
+		.replace(/```(\w+)?\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+		// Inline code
+		.replace(/`([^`]+)`/g, '<code>$1</code>')
+		// Lists
+		.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>')
+		// Paragraphs (simple)
+		.replace(/\n\n/g, '</p><p>')
+		// Line breaks
+		.replace(/\n/g, '<br>');
+
+	// Wrap in paragraph if not already wrapped
+	if (!html.startsWith('<')) {
+		html = '<p>' + html + '</p>';
 	}
+
+	return html;
 }
 
-function clearChat() {
-	state.currentLmf = "";
-	state.currentSvg = "";
-	elements.svgContainer.innerHTML = "";
-	elements.lmfCode.textContent = "";
-	elements.promptInput.value = "";
-	elements.emptyState.classList.remove("hidden");
-	updateStatus("Chat cleared");
-	updateButtonsState(false);
-}
+function showPreview() {
+	console.log('[WebView] showPreview called, isSvgView:', state.isSvgView);
+	elements.emptyState.classList.add("hidden");
+	elements.conversationView.classList.remove("active");
+	elements.conversationView.classList.add("hidden");
 
-// Toggle sidebar visibility
-function toggleSidebar(force?: boolean) {
-	const shouldShow = force !== undefined ? force : elements.chatSidebar.classList.contains("hidden");
-	elements.chatSidebar.classList.toggle("hidden", !shouldShow);
-	if (shouldShow) {
-		// Scroll to bottom of chat history when opening
-		const chatHistory = elements.chatHistory;
-		setTimeout(() => {
-			chatHistory.scrollTop = chatHistory.scrollHeight;
-		}, 10);
-	}
-}
-
-// Clear conversation history
-function clearConversationHistory() {
-	state.conversationHistory = [];
-	elements.chatHistory.innerHTML = "";
-	updateStatus("Conversation history cleared");
-}
-
-// Render a message in the chat history sidebar
-function renderChatMessage(role: "user" | "assistant", content: string, isDesignResponse = false) {
-	const chatHistory = elements.chatHistory;
-	const messageDiv = document.createElement("div");
-	messageDiv.className = `chat-message ${role}`;
-
-	const roleLabel = role === "user" ? "You" : "AI";
-	const timeLabel = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-	// Process content for display
-	let displayContent = content;
-	if (isDesignResponse) {
-		// Format LMF code blocks with special styling
-		displayContent = formatLmfContent(content);
+	if (state.isSvgView) {
+		console.log('[WebView] Showing SVG preview');
+		elements.svgPreview.classList.remove("hidden");
+		elements.svgPreview.classList.add("active");
+		elements.lmfCodeView.classList.add("hidden");
+		elements.lmfCodeView.classList.remove("active");
+		elements.previewModeBadge.textContent = "SVG";
 	} else {
-		displayContent = escapeHtml(content);
-	}
-
-	messageDiv.innerHTML = `
-		<span class="message-role">${roleLabel} · ${timeLabel}</span>
-		<div class="message-bubble">${displayContent}</div>
-	`;
-
-	chatHistory.appendChild(messageDiv);
-	chatHistory.scrollTop = chatHistory.scrollHeight;
-}
-
-// Format LMF content with special styling for <lmf> tags
-function formatLmfContent(content: string): string {
-	// Extract content before <lmf> tags (explanation text)
-	const beforeLmf = content.split(/<lmf>/)[0]?.trim();
-	// Extract content between <lmf> tags
-	const lmfMatch = content.match(/<lmf>([\s\S]*?)<\/lmf>/);
-	const lmfCode = lmfMatch ? lmfMatch[1].trim() : '';
-	// Extract content after </lmf> tags (additional explanation)
-	const afterLmfMatch = content.match(/<\/lmf>([\s\S]*)/);
-	const afterLmf = afterLmfMatch ? afterLmfMatch[1].trim() : '';
-
-	let html = '';
-
-	// Add explanation before LMF
-	if (beforeLmf) {
-		html += `<p>${escapeHtml(beforeLmf)}</p>`;
-	}
-
-	// Add styled LMF code block
-	if (lmfCode) {
-		html += `<div class="lmf-code-block">
-			<div class="lmf-code-header">LMF Design</div>
-			<pre class="lmf-code-content"><code>${escapeHtml(lmfCode)}</code></pre>
-		</div>`;
-	}
-
-	// Add explanation after LMF
-	if (afterLmf) {
-		html += `<p>${escapeHtml(afterLmf)}</p>`;
-	}
-
-	return html || escapeHtml(content);
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text: string): string {
-	const div = document.createElement("div");
-	div.textContent = text;
-	return div.innerHTML;
-}
-
-// Add message to conversation history (max 25 messages)
-function addToConversationHistory(role: "user" | "assistant", content: string) {
-	state.conversationHistory.push({ role, content });
-	// Keep only last 25 messages
-	if (state.conversationHistory.length > 25) {
-		state.conversationHistory.shift();
+		console.log('[WebView] Showing LMF code view');
+		elements.svgPreview.classList.add("hidden");
+		elements.svgPreview.classList.remove("active");
+		elements.lmfCodeView.classList.remove("hidden");
+		elements.lmfCodeView.classList.add("active");
+		elements.previewModeBadge.textContent = "LMF";
 	}
 }
 
@@ -472,7 +422,7 @@ async function handleExport() {
 	}
 
 	try {
-		const response: RPCResponse = await electroview.rpc.request.exportFile({
+		const response = await electroview.rpc.request.exportFile({
 			lmf: state.currentLmf,
 			format: state.settings?.export.defaultFormat || "svg",
 			scale: state.settings?.export.pngScale || 2,
@@ -490,7 +440,7 @@ async function handleExport() {
 
 async function openSettings() {
 	try {
-		const response: RPCResponse = await electroview.rpc.request.getSettings();
+		const response = await electroview.rpc.request.getSettings();
 		if (response?.success) {
 			state.settings = response.data;
 			renderSettingsModal(response.data);
@@ -547,7 +497,7 @@ function renderSettingsModal(settings: Settings) {
 				<div class="form-group">
 					<label>API Key</label>
 					<div class="input-with-icon">
-						<input type="password" id="api-key-input" value="${settings.apiKeys[settings.provider] || ""}" placeholder="sk-..." />
+						<input type="password" id="api-key-input" value="${settings.apiKeys[settings.provider as keyof typeof settings.apiKeys] || ""}" placeholder="sk-..." />
 						<button type="button" id="toggle-api-key" class="icon-btn-sm">
 							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 								<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -655,7 +605,7 @@ function renderSettingsModal(settings: Settings) {
 
 async function loadSystemPromptInModal() {
 	try {
-		const response: RPCResponse = await electroview.rpc.request.getSystemPrompt();
+		const response = await electroview.rpc.request.getSystemPrompt();
 		const textarea = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 		if (response?.success && textarea) {
 			textarea.value = response.data.content;
@@ -728,13 +678,11 @@ function setupTestButtonValidation() {
 	const baseUrlInput = document.getElementById("base-url-input") as HTMLInputElement;
 	const modelInput = document.getElementById("model-input-settings") as HTMLInputElement;
 	const testProviderBtn = document.getElementById("test-provider-btn") as HTMLButtonElement;
-	const statusEl = document.getElementById("test-provider-status");
 
 	function validateTestButton() {
 		const selectedProvider = document.querySelector(".provider-card.selected")?.getAttribute("data-provider");
 		const apiKey = apiKeyInput?.value || "";
 		const baseUrl = baseUrlInput?.value || "";
-		const model = modelInput?.value || "";
 
 		let isValid = apiKey.trim().length > 0;
 
@@ -817,7 +765,7 @@ async function saveSettings() {
 	};
 
 	try {
-		const response: RPCResponse = await electroview.rpc.request.saveSettings({ settings });
+		const response = await electroview.rpc.request.saveSettings({ settings });
 		if (response?.success) {
 			state.settings = settings as any;
 			updateProviderStatus();
@@ -858,7 +806,7 @@ async function applySystemPrompt() {
 	const content = systemPromptInput?.value || "";
 
 	try {
-		const response: RPCResponse = await electroview.rpc.request.saveSystemPrompt({ content });
+		const response = await electroview.rpc.request.saveSystemPrompt({ content });
 		if (response?.success) {
 			updateStatus("System prompt applied");
 		} else {
@@ -871,9 +819,40 @@ async function applySystemPrompt() {
 
 function setLoading(loading: boolean) {
 	state.isGenerating = loading;
-	elements.sendBtn.disabled = loading;
 	elements.promptInput.disabled = loading;
 	elements.app?.classList.toggle("loading", loading);
+
+	// Change button appearance based on loading state
+	if (loading) {
+		// Change to stop button
+		elements.sendBtn.classList.add("stop-btn");
+		elements.sendBtn.innerHTML = `
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+				<rect x="6" y="6" width="12" height="12" rx="2"/>
+			</svg>
+		`;
+		elements.sendBtn.title = "Stop generation";
+	} else {
+		// Change back to send button
+		elements.sendBtn.classList.remove("stop-btn");
+		elements.sendBtn.innerHTML = `
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<line x1="5" y1="12" x2="19" y2="12"/>
+				<polyline points="12 5 19 12 12 19"/>
+			</svg>
+		`;
+		elements.sendBtn.title = "Send (Enter)";
+	}
+}
+
+async function cancelGeneration() {
+	console.log('[WebView] Cancelling generation...');
+	try {
+		await electroview.rpc.request.cancelGeneration();
+		updateStatus("Cancelling...");
+	} catch (error) {
+		console.error('[WebView] Error cancelling generation:', error);
+	}
 }
 
 function updateStatus(status: string) {
@@ -885,7 +864,7 @@ function updateTokenCount(tokens: number) {
 }
 
 function updateProviderStatus() {
-	const apiKey = state.settings?.apiKeys[state.settings?.provider];
+	const apiKey = state.settings?.apiKeys[state.settings?.provider as keyof typeof state.settings.apiKeys];
 	const hasApiKey = !!apiKey && apiKey.trim().length > 0;
 
 	if (state.settings?.provider && hasApiKey) {
@@ -916,10 +895,9 @@ function enableChatInput(enabled: boolean) {
 	}
 }
 
-function updateButtonsState(hasGeneratedContent: boolean) {
-	elements.exportBtn.disabled = !hasGeneratedContent;
-	elements.toggleViewBtn.disabled = !hasGeneratedContent;
-	elements.refreshBtn.disabled = !hasGeneratedContent;
+function updateButtonsState(_hasGeneratedContent: boolean) {
+	const hasLmf = state.currentLmf.length > 0;
+	elements.exportBtn.disabled = !hasLmf;
 }
 
 function updateConnectionStatus(data?: { connected: boolean; provider: string }) {
@@ -941,6 +919,20 @@ function updateConnectionStatus(data?: { connected: boolean; provider: string })
 function showError(message: string) {
 	console.error(message);
 	updateStatus(`Error: ${message}`);
+
+	// Show error message in the chat area
+	elements.errorMessage.textContent = message;
+	elements.errorMessage.classList.remove('hidden');
+
+	// Auto-hide after 5 seconds
+	setTimeout(() => {
+		hideError();
+	}, 5000);
+}
+
+function hideError() {
+	elements.errorMessage.classList.add('hidden');
+	elements.errorMessage.textContent = '';
 }
 
 function capitalize(str: string): string {
@@ -1005,7 +997,7 @@ async function fetchModels() {
 		fetchBtn.textContent = "Fetching...";
 
 		// Fetch models from backend
-		const response: RPCResponse = await electroview.rpc.request.fetchModels();
+		const response = await electroview.rpc.request.fetchModels();
 
 		if (response?.success && response.data?.models) {
 			const models = response.data.models as string[];
@@ -1111,7 +1103,9 @@ function openModelSelectionDialog(models: string[], modelInput: HTMLInputElement
 
 	// Search functionality
 	searchInput.addEventListener("input", (e) => {
-		const query = e.target.value.toLowerCase();
+		const target = e.target as HTMLInputElement | null;
+		if (!target) return;
+		const query = target.value.toLowerCase();
 		const modelItems = modelList.querySelectorAll(".model-item");
 
 		modelItems.forEach(item => {

@@ -1,13 +1,10 @@
 // Configuration management for LMF Generator
 
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { join } from "path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { PATHS } from "electrobun/bun";
 
 import type { AppConfig } from "../shared/types";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const DEFAULT_CONFIG: AppConfig = {
 	provider: "anthropic",
@@ -79,7 +76,7 @@ export class ConfigManager {
 
 	constructor() {
 		// Use OS-specific app data directory for persistent config
-		const appDataDir = PATHS.appData || join(process.env.APPDATA || process.env.HOME || "", "lmf-generator");
+		const appDataDir = (PATHS as any).appData || join(process.env.APPDATA || process.env.HOME || "", "lmf-generator");
 		const configDir = join(appDataDir, "config");
 
 		this.configPath = join(configDir, "config.json");

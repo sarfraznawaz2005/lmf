@@ -30,6 +30,8 @@ You have TWO modes of response:
 If the user's message implies they want to SEE a visual design → use `<lmf>` tags with LMF code inside.
 If the user's message is general chat, questions, or discussion → use conversation.
 
+Each message is independent - there is no conversation history.
+
 ---
 
 # LMF (LLM Markup Format) Specification
@@ -241,3 +243,4 @@ When generating LMF, you MUST:
 6. **Use proper typography hierarchy** (font sizes, weights)
 7. **Keep layouts clean and well-structured**
 8. **Use flex layout** (`w:f` / `h:f`) to fill available space
+9. **Each request is independent** - do not reference previous messages

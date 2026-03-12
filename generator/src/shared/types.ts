@@ -29,7 +29,7 @@ export interface LMFGenerationRequest {
   prompt: string;
   model: string;
   systemPrompt: string;
-  conversationHistory?: Array<{ role: "user" | "assistant"; content: string }>;
+  currentLmf?: string;
 }
 
 export interface LMFGenerationResponse {
@@ -92,7 +92,7 @@ export interface LMFGeneratorRPC {
   requests: {
     getSettings: () => RPCResponse;
     saveSettings: (params: { settings: Partial<AppConfig> & { systemPrompt?: string } }) => RPCResponse;
-    generateLmf: (params: { prompt: string; conversationHistory?: Array<{ role: "user" | "assistant"; content: string }> }) => RPCResponse;
+    generateLmf: (params: { prompt: string }) => RPCResponse;
     renderSvg: (params: { lmf: string }) => RPCResponse;
     exportFile: (params: { lmf: string; format: string; scale: number }) => RPCResponse;
     checkPython: () => RPCResponse;
@@ -100,6 +100,7 @@ export interface LMFGeneratorRPC {
     getSystemPrompt: () => RPCResponse;
     saveSystemPrompt: (params: { content: string }) => RPCResponse;
     testProvider: (params: { provider: string; apiKey: string; baseURL?: string; model?: string }) => RPCResponse;
+    cancelGeneration: () => RPCResponse;
   };
   messages: {
     connectionStatus: (data: { connected: boolean; provider: string }) => void;

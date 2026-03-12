@@ -9,36 +9,11 @@
 </head>
 <body>
   <div id="app">
-    <!-- Sidebar for Chat History -->
-    <aside id="chat-sidebar" class="chat-sidebar">
-      <div class="sidebar-header">
-        <h3>Conversation</h3>
-        <button id="close-sidebar" class="icon-btn" title="Close sidebar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div id="chat-history" class="chat-history">
-        <!-- Chat messages will be inserted here -->
-      </div>
-      <div class="sidebar-footer">
-        <button id="clear-chat-btn" class="btn btn-secondary btn-small">Clear Conversation</button>
-      </div>
-    </aside>
-
     <!-- Main Content -->
     <main class="main-content">
       <!-- Header Toolbar -->
       <header class="toolbar">
         <div class="toolbar-left">
-          <button id="toggle-sidebar-btn" class="icon-btn" title="Toggle chat history sidebar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <line x1="9" y1="3" x2="9" y2="21"/>
-            </svg>
-          </button>
           <div class="app-title">
             <h1>LMF Generator</h1>
             <p>AI-powered LMF image generation</p>
@@ -56,24 +31,15 @@
         <span class="preview-label">LIVE PREVIEW</span>
         <div class="preview-controls">
           <span id="preview-mode-badge" class="badge badge-success">SVG</span>
-          <button id="toggle-view-btn" class="icon-btn" title="Toggle SVG/LMF Code">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-              <line x1="9" y1="9" x2="21" y2="9"/>
-              <polyline points="9 15 15 9 9 3"/>
-            </svg>
-          </button>
-          <button id="refresh-btn" class="icon-btn" title="Refresh">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="23 4 23 10 17 10"/>
-              <polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-          </button>
         </div>
       </div>
 
       <div class="preview-content">
+        <!-- Conversational Response View -->
+        <div id="conversation-view" class="preview-view hidden">
+          <div id="conversation-content"></div>
+        </div>
+
         <!-- SVG Preview (default) -->
         <div id="svg-preview" class="preview-view active">
           <div id="svg-container"></div>
@@ -93,8 +59,10 @@
 
     <!-- Chat Input Section -->
     <section class="chat-input-container">
+      <!-- Error Message Display -->
+      <div id="error-message" class="error-message hidden"></div>
+
       <div class="chat-input-wrapper">
-        <span class="chat-label">AI PROMPT</span>
         <div class="chat-input-row">
           <!-- Text Input with integrated Send button -->
           <div class="input-wrapper">

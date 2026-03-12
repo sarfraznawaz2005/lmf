@@ -10,7 +10,10 @@ import { existsSync } from "fs";
 import { ConfigManager } from "./config-manager";
 import { AIProvider } from "./ai-provider";
 import { Renderer } from "./renderer";
-import type { AppConfig, RPCResponse } from "../shared/types";
+import type { AppConfig } from "../shared/types";
+
+// @ts-ignore - AppConfig is used in type annotations below
+type _AppConfigRef = AppConfig;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, "..", "..");
@@ -41,7 +44,7 @@ export const rpc = BrowserView.defineRPC({
 				};
 			},
 
-			saveSettings: async (request: { settings: Partial<AppConfig> & { systemPrompt?: string } }) => {
+			saveSettings: async (request: any) => {
 				const { settings } = request;
 
 				// Update config
@@ -69,7 +72,7 @@ export const rpc = BrowserView.defineRPC({
 				};
 			},
 
-			generateLmf: async (request: { prompt: string; conversationHistory?: Array<{ role: "user" | "assistant"; content: string }> }) => {
+			generateLmf: async (request: any) => {
 				console.log('[RPC] generateLmf called with prompt:', request.prompt.substring(0, 50) + '...');
 				try {
 					const config = configManager.getConfig();
@@ -90,7 +93,7 @@ export const rpc = BrowserView.defineRPC({
 						prompt: request.prompt,
 						model: config.selectedModel,
 						systemPrompt,
-						conversationHistory: request.conversationHistory,
+					currentLmf: request.currentLmf,
 					});
 					console.log('[RPC] AI provider returned, result text length:', result.text.length);
 
@@ -170,6 +173,15 @@ export const rpc = BrowserView.defineRPC({
 					const errorMessage = error instanceof Error ? error.message : "Failed to generate LMF";
 					console.error('[RPC] Error in generateLmf:', errorMessage);
 
+					// Check if this was an abort/cancellation
+					if (error instanceof Error && (error.name === 'AbortError' || errorMessage.includes('cancelled') || errorMessage.includes('abort'))) {
+						return JSON.parse(JSON.stringify({
+							success: false,
+							error: "Generation was cancelled",
+							cancelled: true,
+						}));
+					}
+
 					// Handle specific error types
 					if (errorMessage.includes("API key")) {
 						return JSON.parse(JSON.stringify({
@@ -192,7 +204,7 @@ export const rpc = BrowserView.defineRPC({
 				}
 			},
 
-			renderSvg: async (request: { lmf: string }) => {
+			renderSvg: async (request: any) => {
 				try {
 					const svg = await renderer.renderToSvg(request.lmf);
 					return {
@@ -207,7 +219,7 @@ export const rpc = BrowserView.defineRPC({
 				}
 			},
 
-			exportFile: async (request: { lmf: string; format: string; scale: number }) => {
+			exportFile: async (request: any) => {
 				try {
 					const { lmf, format, scale } = request;
 
@@ -272,14 +284,22 @@ export const rpc = BrowserView.defineRPC({
 				};
 			},
 
-			saveSystemPrompt: async (request: { content: string }) => {
+			saveSystemPrompt: async (request: any) => {
 				configManager.saveSystemPrompt(request.content);
 				return {
 					success: true,
 				};
 			},
 
-			testProvider: (request: { provider: string; apiKey: string; baseURL?: string; model?: string }) => {
+			cancelGeneration: async () => {
+				const cancelled = aiProvider.cancelGeneration();
+				return {
+					success: true,
+					data: { cancelled },
+				};
+			},
+
+			testProvider: (request: any) => {
 				// Fire-and-forget: run the test async (can exceed RPC timeout)
 				// and push the result back via a webview message.
 				(async () => {
@@ -322,7 +342,7 @@ export const rpc = BrowserView.defineRPC({
 									{ role: "system", content: "You are a test endpoint. Respond briefly." },
 									{ role: "user", content: "Respond with just the word 'OK' to confirm connection." },
 								],
-								maxTokens: 10,
+								
 								abortSignal: AbortSignal.timeout(30000), // 30 second timeout
 							});
 
@@ -353,7 +373,7 @@ export const rpc = BrowserView.defineRPC({
 									{ role: "system", content: "You are a test endpoint. Respond briefly." },
 									{ role: "user", content: "Respond with just the word 'OK' to confirm connection." },
 								],
-								maxTokens: 10,
+								
 								abortSignal: AbortSignal.timeout(30000),
 							});
 
@@ -384,7 +404,7 @@ export const rpc = BrowserView.defineRPC({
 									{ role: "system", content: "You are a test endpoint. Respond briefly." },
 									{ role: "user", content: "Respond with just the word 'OK' to confirm connection." },
 								],
-								maxTokens: 10,
+								
 								abortSignal: AbortSignal.timeout(30000),
 							});
 
@@ -504,22 +524,20 @@ const mainWindow = new BrowserWindow({
 		x: 100,
 		y: 100,
 	},
-	minFrame: { width: 800, height: 600 },
 	sandbox: false,
 	rpc,
-	show: false,
 });
 
 // Helper function to safely send test provider results
 function sendTestProviderResult(result: { success: boolean; response?: string; tokens?: number; error?: string }) {
 	try {
-		if (mainWindow?.webview?.rpc?.send?.testProviderResult) {
-			mainWindow.webview.rpc.send.testProviderResult(result);
+		if ((mainWindow.webview.rpc as any).send?.testProviderResult) {
+			(mainWindow.webview.rpc as any).send.testProviderResult(result);
 		} else {
 			// Retry after a short delay
 			setTimeout(() => {
-				if (mainWindow?.webview?.rpc?.send?.testProviderResult) {
-					mainWindow.webview.rpc.send.testProviderResult(result);
+				if ((mainWindow.webview.rpc as any).send?.testProviderResult) {
+					(mainWindow.webview.rpc as any).send.testProviderResult(result);
 				}
 			}, 100);
 		}
@@ -541,7 +559,7 @@ mainWindow.webview.on("dom-ready", () => {
 	const config = configManager.getConfig();
 	const isConnected = !!(config.apiKeys.anthropic || config.apiKeys.openai || config.apiKeys.custom);
 
-	mainWindow.webview.rpc.send.connectionStatus({
+	(mainWindow.webview.rpc as any).send.connectionStatus({
 		connected: isConnected,
 		provider: config.provider,
 	});
@@ -553,20 +571,17 @@ mainWindow.webview.on("dom-ready", () => {
 		mainWindow.focus();
 		// Execute focus directly in webview via JavaScript
 		try {
-			await mainWindow.webview.rpc.request.evaluateJavascriptWithResponse({
-				script: `
-					const input = document.getElementById('prompt-input');
-					if (input) {
-						input.focus();
-						input.selectionStart = input.selectionEnd = input.value.length;
-						console.log('[WebView] Direct JS focus executed');
-					}
-					'done';
-				`,
-			});
+			await mainWindow.webview.executeJavascript(`
+				const input = document.getElementById('prompt-input');
+				if (input) {
+					input.focus();
+					input.selectionStart = input.selectionEnd = input.value.length;
+					console.log('[WebView] Direct JS focus executed');
+				}
+			`);
 		} catch (e) {
-			console.log('[Bun] evaluateJavascript failed, falling back to RPC');
-			mainWindow.webview.rpc.send.focusInput();
+			console.log('[Bun] executeJavascript failed, falling back to RPC');
+			(mainWindow.webview.rpc as any).send.focusInput();
 		}
 	}, 500);
 
@@ -574,18 +589,18 @@ mainWindow.webview.on("dom-ready", () => {
 	setTimeout(() => {
 		console.log('[Bun] Re-focusing after 2s');
 		mainWindow.focus();
-		mainWindow.webview.rpc.send.focusInput();
+		(mainWindow.webview.rpc as any).send.focusInput();
 	}, 2000);
 });
 
 // Also focus input when window receives focus (handles edge cases)
 mainWindow.on("focus", () => {
 	console.log('[Bun] Window focused, sending focus to input');
-	mainWindow.webview.rpc.send.focusInput();
+	(mainWindow.webview.rpc as any).send.focusInput();
 });
 
 // Focus input on window resize (when maximized/shown)
 mainWindow.on("resize", () => {
 	console.log('[Bun] Window resized, sending focus to input');
-	mainWindow.webview.rpc.send.focusInput();
+	(mainWindow.webview.rpc as any).send.focusInput();
 });
