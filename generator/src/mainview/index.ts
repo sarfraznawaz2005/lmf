@@ -85,16 +85,7 @@ const rpc = Electroview.defineRPC({
 				handleTestProviderResult(data);
 			},
 			focusInput: () => {
-				console.log('[WebView] Received focusInput message');
-				const attemptFocus = () => {
-					const input = elements.promptInput as HTMLTextAreaElement;
-					if (input) {
-						input.focus();
-						input.selectionStart = input.selectionEnd = input.value.length;
-					}
-				};
-				
-				attemptFocus();
+				elements.promptInput.focus();
 			},
 		} as any,
 	},
@@ -109,10 +100,7 @@ async function init() {
 	updateConnectionStatus();
 	updateButtonsState(false);
 
-	// Focus chat input on startup - delay to ensure all init is complete
-	setTimeout(() => {
-		elements.promptInput.focus();
-	}, 500);
+	requestAnimationFrame(() => elements.promptInput.focus());
 }
 
 // Load settings from backend
@@ -160,8 +148,17 @@ function setupEventListeners() {
 	document.addEventListener("keydown", handleGlobalKeydown);
 }
 
+// Disable devtools access (right-click Inspect, F12, Ctrl+Shift+I/J)
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
 // Global keyboard shortcuts
 function handleGlobalKeydown(e: KeyboardEvent) {
+	// Block devtools shortcuts
+	if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j"))) {
+		e.preventDefault();
+		return;
+	}
+
 	// Ctrl+T - Toggle preview (SVG/LMF code)
 	if (e.ctrlKey && e.key === "t") {
 		e.preventDefault();
@@ -439,7 +436,7 @@ async function handleExport() {
 		});
 
 		if (response?.success) {
-			updateStatus(`Exported to ${response.data.path}`);
+			updateStatusWithPath("Exported to", response.data.path);
 		} else {
 			showError(response?.error || "Export failed");
 		}
@@ -569,7 +566,6 @@ function renderSettingsModal(settings: Settings) {
 					<div class="select-wrapper">
 						<select id="default-format-select">
 							<option value="svg" ${settings.export.defaultFormat === "svg" ? "selected" : ""}>SVG</option>
-							<option value="html" ${settings.export.defaultFormat === "html" ? "selected" : ""}>HTML</option>
 							<option value="png" ${settings.export.defaultFormat === "png" ? "selected" : ""}>PNG</option>
 						</select>
 					</div>
@@ -788,6 +784,20 @@ async function cancelGeneration() {
 
 function updateStatus(status: string) {
 	elements.statusText.textContent = status;
+}
+
+function updateStatusWithPath(prefix: string, filePath: string) {
+	elements.statusText.innerHTML = "";
+	const text = document.createTextNode(`${prefix} `);
+	const link = document.createElement("a");
+	link.textContent = filePath;
+	link.title = "Click to open file";
+	link.style.cssText = "cursor:pointer;text-decoration:underline;color:inherit;";
+	link.addEventListener("click", () => {
+		electroview.rpc.request.openFile({ path: filePath });
+	});
+	elements.statusText.appendChild(text);
+	elements.statusText.appendChild(link);
 }
 
 function updateTokenCount(tokens: number) {

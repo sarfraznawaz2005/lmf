@@ -16,6 +16,8 @@ export default {
 	build: {
 		bun: {
 			entrypoint: "src/bun/index.ts",
+			minify: true,
+			sourcemap: "none",
 		},
 		views: {
 			mainview: {

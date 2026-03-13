@@ -73,6 +73,7 @@ export class ConfigManager {
 	private configPath: string;
 	private systemPromptPath: string;
 	private config: AppConfig;
+	private cachedSystemPrompt: string | null = null;
 
 	constructor() {
 		// Use OS-specific app data directory for persistent config
@@ -88,6 +89,8 @@ export class ConfigManager {
 		}
 
 		this.config = this.loadConfig();
+		// Load system prompt once at startup
+		this.cachedSystemPrompt = this.loadSystemPrompt();
 	}
 
 	private loadConfig(): AppConfig {
@@ -95,7 +98,12 @@ export class ConfigManager {
 			try {
 				const content = readFileSync(this.configPath, "utf-8");
 				const loaded = JSON.parse(content);
-				return { ...DEFAULT_CONFIG, ...loaded };
+				const merged = { ...DEFAULT_CONFIG, ...loaded };
+				// Clamp removed formats to svg
+				if (!["svg", "png"].includes(merged.export?.defaultFormat)) {
+					merged.export = { ...merged.export, defaultFormat: "svg" };
+				}
+				return merged;
 			} catch (error) {
 				return { ...DEFAULT_CONFIG };
 			}
@@ -124,7 +132,7 @@ export class ConfigManager {
 		return { ...this.config };
 	}
 
-	getSystemPrompt(): string {
+	private loadSystemPrompt(): string {
 		if (existsSync(this.systemPromptPath)) {
 			try {
 				return readFileSync(this.systemPromptPath, "utf-8");
@@ -133,13 +141,18 @@ export class ConfigManager {
 			}
 		}
 
-		// Save fallback system prompt
+		// Save fallback system prompt on first run
 		this.saveSystemPrompt(FALLBACK_SYSTEM_PROMPT);
 		return FALLBACK_SYSTEM_PROMPT;
 	}
 
+	getSystemPrompt(): string {
+		return this.cachedSystemPrompt!;
+	}
+
 	saveSystemPrompt(content: string) {
 		writeFileSync(this.systemPromptPath, content, "utf-8");
+		this.cachedSystemPrompt = content;
 	}
 
 	getWindowState(): { width: number; height: number; x: number; y: number; maximized?: boolean } {

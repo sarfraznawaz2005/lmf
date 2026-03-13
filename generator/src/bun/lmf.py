@@ -293,6 +293,28 @@ def _text_h(fs: float) -> float:
     return fs * 1.4
 
 
+def _wrap_text(text: str, max_w: float, fs: float) -> list:
+    """Word-wrap text into lines that fit within max_w pixels."""
+    if max_w <= 0 or not text:
+        return [text] if text else [""]
+    words = text.split()
+    if not words:
+        return [""]
+    lines = []
+    current = ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if _text_w(candidate, fs) <= max_w:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = word  # single word may still exceed max_w — keep it anyway
+    if current:
+        lines.append(current)
+    return lines if lines else [text]
+
+
 def _natural_w(node: Node) -> float:
     """Estimate the natural (content) width of any node."""
     t = node.type
@@ -341,6 +363,9 @@ def _natural_h(node: Node, given_w: float = 0) -> float:
     t = node.type
     fs = node.get_f("s", 14)
     if t == "T":
+        if node.get("wrap") and given_w > 0:
+            lines = _wrap_text(node.text or "", given_w, fs)
+            return _text_h(fs) * len(lines)
         return _text_h(fs)
     if t == "Av":
         return node.get_f("s", 40)
@@ -925,8 +950,15 @@ def _render_content(node: Node, box: LayoutBox, parts: list[str], defs: list[str
         al = node.get("al", "start")
         anchor = {"center": "middle", "right": "end"}.get(al, "start")
         tx = {"center": ax + w / 2, "right": ax + w}.get(al, ax)
-        ty = ay + h / 2
-        parts.append(_txt(tx, ty, node.text, fs, c, bold, italic, anchor))
+        if node.get("wrap") and w > 0:
+            lines = _wrap_text(node.text or "", w, fs)
+            line_h = _text_h(fs)
+            for i, line in enumerate(lines):
+                ty_i = ay + line_h * (i + 0.5)
+                parts.append(_txt(tx, ty_i, line, fs, c, bold, italic, anchor))
+        else:
+            ty = ay + h / 2
+            parts.append(_txt(tx, ty, node.text, fs, c, bold, italic, anchor))
 
     elif t == "Dv":
         dc = node.get("c", "#334155")

@@ -260,6 +260,12 @@ export const rpc = BrowserView.defineRPC({
 				}
 			},
 
+			openFile: async (request: any) => {
+				const { Utils } = await import("electrobun/bun");
+				Utils.openPath(request.path);
+				return { success: true };
+			},
+
 			checkPython: async () => {
 				const status = await renderer.checkStatus();
 				return {
@@ -587,43 +593,4 @@ mainWindow.webview.on("dom-ready", () => {
 		}
 	}, 2000); // Run 2 seconds after window is ready
 
-	// Focus the chat input after window is shown and webview is ready
-	setTimeout(async () => {
-		console.log('[Bun] Focusing window and webview');
-		// Focus at window and webview level first
-		mainWindow.focus();
-		// Execute focus directly in webview via JavaScript
-		try {
-			await mainWindow.webview.executeJavascript(`
-				const input = document.getElementById('prompt-input');
-				if (input) {
-					input.focus();
-					input.selectionStart = input.selectionEnd = input.value.length;
-					console.log('[WebView] Direct JS focus executed');
-				}
-			`);
-		} catch (e) {
-			console.log('[Bun] executeJavascript failed, falling back to RPC');
-			(mainWindow.webview.rpc as any).send.focusInput();
-		}
-	}, 500);
-
-	// Re-focus again after a longer delay to ensure focus sticks
-	setTimeout(() => {
-		console.log('[Bun] Re-focusing after 2s');
-		mainWindow.focus();
-		(mainWindow.webview.rpc as any).send.focusInput();
-	}, 2000);
-});
-
-// Also focus input when window receives focus (handles edge cases)
-mainWindow.on("focus", () => {
-	console.log('[Bun] Window focused, sending focus to input');
-	(mainWindow.webview.rpc as any).send.focusInput();
-});
-
-// Focus input on window resize (when maximized/shown)
-mainWindow.on("resize", () => {
-	console.log('[Bun] Window resized, sending focus to input');
-	(mainWindow.webview.rpc as any).send.focusInput();
 });
