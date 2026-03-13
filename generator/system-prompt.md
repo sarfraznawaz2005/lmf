@@ -399,6 +399,9 @@ Use these structural skeletons as starting points. Build unique content within t
 | Centered form / login | `C w:f h:f al:center jc:center p:40` → form card `C w:f bg:#1e293b r:16 p:32` |
 | Settings / list page | `C w:f h:f p:24 g:20` → header `R` + sections `C bg:#1e293b r:12 p:20` with list items |
 | Split layout (2 panels) | `R w:f h:f` → left `C w:50% h:f` + right `C w:50% h:f` |
+| Split login (brand + form) | `R w:f h:f` → left `C w:560 h:f bg:#6366f1 p:60 jc:center` + right `C w:f h:f jc:center al:center` |
+| Kanban board | `C w:f h:f p:24 g:20` → header `R` + columns `R w:f g:16 h:f` (4 equal `C w:f h:f` cards) |
+| E-commerce with filters | `R w:f h:f` → filter sidebar `C w:260 h:f bg:#1e293b` + products `C w:f h:f` + cart `C w:300 h:f` |
 
 **Sidebar widths:** `w:200` (compact), `w:220` (standard), `w:260` (wide). Always pair with `h:f`.
 
@@ -410,8 +413,12 @@ Use these structural skeletons as starting points. Build unique content within t
 | Wide dashboard | `#LMF1 1440x960 bg:#0f172a` |
 | Landing page (hero + 2–3 sections) | `#LMF1 1280x1600 bg:#0f172a` |
 | Landing page (hero + 4+ sections) | `#LMF1 1280x2200 bg:#0f172a` |
-| Settings / list page | `#LMF1 1280x900 bg:#0f172a` |
-| Login / signup | `#LMF1 1280x750 bg:#0f172a` |
+| Settings / profile page | `#LMF1 1280x900 bg:#0f172a` |
+| Login / signup (split panel) | `#LMF1 1280x750 bg:#0f172a` |
+| Login / signup (centered form) | `#LMF1 1280x700 bg:#0f172a` |
+| Kanban / project board | `#LMF1 1280x900 bg:#0f172a` |
+| E-commerce / product listing | `#LMF1 1280x900 bg:#0f172a` |
+| Blog / content listing | `#LMF1 1280x1600 bg:#0f172a` |
 | Mobile app screen | `#LMF1 390x844 bg:#0f172a` |
 | Mobile (scrollable) | `#LMF1 390x1400 bg:#0f172a` |
 | Card / widget | `#LMF1 400x320 bg:#0f172a` |
@@ -640,6 +647,26 @@ C w:f h:f p:24 g:20
       // list items...
 ```
 
+## 15. Icon containers in columns auto-size — no `al:start` workaround needed
+
+A `C` container that only contains `Ic` or `Av` children automatically sizes to its natural width when placed inside a column. You do NOT need to add `al:start` to the parent column.
+
+```
+// CORRECT — icon box auto-sizes to compact square
+C w:f bg:#1e293b r:12 p:24 g:12
+  C bg:#6366f1 r:10 p:12
+    Ic name:chart s:24 c:#fff
+  T s:16 b c:#f1f5f9 "Analytics"
+  T s:13 c:#94a3b8 wrap "Real-time data visualization."
+
+// WRONG — adding al:start on the parent card is unnecessary
+C w:f bg:#1e293b r:12 p:24 g:12 al:start   ← not needed
+  C bg:#6366f1 r:10 p:12
+    Ic name:chart s:24 c:#fff
+```
+
+Any other column child (rows, text, buttons, inputs, dividers) still fills the column width as usual.
+
 ## 14. Budget canvas height — content must fit, never overflow
 
 **Content that overflows the canvas is clipped and invisible.** Before writing the layout, mentally add up section heights and ensure they fit.
@@ -657,6 +684,23 @@ For a standard **1280×800** dashboard (usable height ≈ 752px after `p:24` can
 That leaves roughly: 752 − 48 − 120 − 20 − 210 − 20 = **~334px** for the last row. This is enough for a list, table, or ranked items card.
 
 **Rule:** On an 800px-tall canvas, use **at most 2 content rows** below the stat cards. If the design genuinely needs more content, increase the canvas height (e.g., `#LMF1 1280x900`) rather than cramming rows that will be cut off.
+
+### Mobile content budget (390×844)
+
+A typical iPhone screen (844px) has very limited vertical space. Stay within this budget:
+
+| Section | Approx height |
+|---------|--------------|
+| Status bar | 30px |
+| Header (greeting + avatar) | 60px |
+| Balance / hero card | 130px |
+| Quick actions row (icons) | 120px |
+| Chart section (h:120) | 160px |
+| Bottom nav bar | 60px |
+| **Total fixed** | **~560px** |
+| **Remaining for list** | **~284px** |
+
+With 284px for a scrollable list section, show at most **3–4 list items** (each ~60px with dividers). If you need more, use `#LMF1 390x1200` and note it's a scrollable view. Use compact card padding (`p:12` instead of `p:16`) on mobile to save space.
 
 ---
 
@@ -970,4 +1014,65 @@ C w:f bg:#1e293b r:12 g:0
       Av s:28 bg:#6366f1 "JD"
       T s:13 c:#94a3b8 "Jane Doe"
 ```
+
+### Kanban Task Card
+
+Use inside a kanban column (`C w:f h:f bg:#1e293b r:12 p:16 g:12`). Background of card should contrast from the column.
+
+```
+C w:f bg:#0f172a r:10 p:14 g:10
+  T s:14 b c:#f1f5f9 "Dashboard analytics v2"
+  T s:12 c:#64748b wrap "New chart types and real-time data refresh interval controls."
+  R w:f jc:between al:center
+    Bd bg:#2b0f0f c:#f87171 "High"
+    Av s:24 bg:#f59e0b "EP"
+```
+
+Kanban column headers use a colored pill label + count badge:
+
+```
+R w:f jc:between al:center
+  R g:8 al:center
+    C bg:#f59e0b r:6 p:4,8
+      T s:11 b c:#0f172a "IN PROGRESS"
+    T s:14 b c:#f1f5f9 "In Progress"
+  Bd bg:#2b1d0e c:#f59e0b "4"
+```
+
+### E-commerce Product Card
+
+```
+C w:f bg:#1e293b r:12 g:0
+  Im w:f h:160 bg:#0f172a r:12,12,0,0
+  C w:f p:16 g:8
+    R g:8 al:center
+      Bd bg:#0d2b1f c:#4ade80 "In Stock"
+    T s:15 b c:#f1f5f9 "iPhone 15 Pro"
+    T s:13 c:#94a3b8 "Apple · 256GB · Space Black"
+    R w:f jc:between al:center
+      T s:20 b c:#f1f5f9 "$999"
+      T s:14 c:#f59e0b "★★★★★"
+    Bt bg:#6366f1 r:8 w:f "Add to Cart"
+```
+
+**Important:** For 3-column (or narrower) product grids, keep names short. Putting badge and long title on the same `R jc:between` row in narrow cards causes clipping. Either put the badge on its own line (above the title) or keep titles ≤ 20 characters.
+
+### Settings Toggle Row
+
+```
+C w:f bg:#1e293b r:12 p:20 g:0
+  R w:f jc:between al:center p:12,0
+    C g:4
+      T s:14 b c:#f1f5f9 "Email notifications"
+      T s:13 c:#64748b "Get notified for new replies and mentions"
+    Bt bg:#6366f1 r:999 "ON"
+  Dv c:#334155
+  R w:f jc:between al:center p:12,0
+    C g:4
+      T s:14 b c:#f1f5f9 "Marketing emails"
+      T s:13 c:#64748b "Product updates and announcements"
+    Bt bg:#334155 bd:1,#475569 r:999 "OFF"
+```
+
+Use `r:999` on `Bt` to get a pill-shaped toggle button.
 

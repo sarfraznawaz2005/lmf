@@ -397,10 +397,17 @@ def _child_w_in_col(child: Node, inner_w: float) -> float:
         return float(w)
     if isinstance(w, str) and w.endswith("%"):
         return inner_w * float(w[:-1]) / 100
+    if w == "flex":
+        return inner_w  # w:f → fill column width explicitly
     # Av and Ic have an implicit square size from their 's' prop
     if child.type in ("Av", "Ic"):
         return child.get_f("s", 40 if child.type == "Av" else 20)
-    return inner_w  # w:f or no w → stretch to column width
+    # Icon/badge-only containers (C, B) with no explicit w use natural width
+    # so they don't stretch to fill the column (e.g. icon boxes like C bg:#6366f1 r:10 p:10)
+    if child.type in ("C", "B") and child.children:
+        if all(c.type in ("Ic", "Av", "Bd") for c in child.children):
+            return _natural_w(child)
+    return inner_w  # everything else stretches to column width
 
 
 def _compute_flex_w(children: list[Node], inner_w: float, total_gap: float) -> float:
