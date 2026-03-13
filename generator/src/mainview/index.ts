@@ -559,20 +559,6 @@ function renderSettingsModal(settings: Settings) {
 			</section>
 
 			<section class="settings-section">
-				<h3>System Prompt</h3>
-				<p class="section-desc">Customize the AI's behavior for LMF generation</p>
-
-				<div class="textarea-container">
-					<textarea id="system-prompt-input" rows="8"></textarea>
-				</div>
-
-				<div class="form-actions">
-					<button type="button" id="reset-prompt-btn" class="btn btn-secondary">Reset to Default</button>
-					<button type="button" id="apply-prompt-btn" class="btn btn-primary">Apply</button>
-				</div>
-			</section>
-
-			<section class="settings-section">
 				<div class="section-header-row">
 					<h3>Export Settings</h3>
 					<span class="badge badge-success" id="python-status">Python Detected</span>
@@ -608,21 +594,6 @@ function renderSettingsModal(settings: Settings) {
 	`;
 
 	setupSettingsEventListeners();
-
-	// Load system prompt
-	loadSystemPromptInModal();
-}
-
-async function loadSystemPromptInModal() {
-	try {
-		const response = await electroview.rpc.request.getSystemPrompt();
-		const textarea = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
-		if (response?.success && textarea) {
-			textarea.value = response.data.content;
-		}
-	} catch (error) {
-		// Silent fail
-	}
 }
 
 function setupSettingsEventListeners() {
@@ -664,18 +635,6 @@ function setupSettingsEventListeners() {
 	const saveBtn = document.getElementById("save-settings-btn");
 	if (saveBtn) {
 		saveBtn.addEventListener("click", saveSettings);
-	}
-
-	// Reset prompt
-	const resetBtn = document.getElementById("reset-prompt-btn");
-	if (resetBtn) {
-		resetBtn.addEventListener("click", resetSystemPrompt);
-	}
-
-	// Apply prompt
-	const applyBtn = document.getElementById("apply-prompt-btn");
-	if (applyBtn) {
-		applyBtn.addEventListener("click", applySystemPrompt);
 	}
 
 	// Input validation for test button
@@ -742,7 +701,6 @@ async function saveSettings() {
 	const apiKeyInput = document.getElementById("api-key-input") as HTMLInputElement;
 	const baseUrlInput = document.getElementById("base-url-input") as HTMLInputElement;
 	const modelInput = document.getElementById("model-input-settings") as HTMLInputElement;
-	const systemPromptInput = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 	const formatSelect = document.getElementById("default-format-select") as HTMLSelectElement;
 	const scaleSelect = document.getElementById("png-scale-select") as HTMLSelectElement;
 
@@ -767,7 +725,6 @@ async function saveSettings() {
 			models: state.settings?.customProvider?.models || [],
 		},
 		selectedModel: modelInput?.value || "",
-		systemPrompt: systemPromptInput?.value || "",
 		export: {
 			defaultFormat: formatSelect?.value || "svg",
 			pngScale: parseInt(scaleSelect?.value || "2"),
@@ -788,42 +745,6 @@ async function saveSettings() {
 		}
 	} catch (error) {
 		showError(error instanceof Error ? error.message : "Failed to save settings");
-	}
-}
-
-async function resetSystemPrompt() {
-	const defaultPrompt = `You are an expert LMF (LLM Markup Format) designer.
-Generate clean, semantic LMF layouts based on user requests.
-Use the dark theme palette by default:
-- Canvas: #0f172a or #1a1a1a
-- Surfaces: #1e293b or #2a2a2a
-- Primary text: #f1f5f9 or #e8e8e8
-- Muted text: #64748b or #888888
-- Accent: #6366f1
-
-Always output valid LMF format starting with #LMF1.
-Use semantic node types (R, C, T, B, Ch, etc.).
-Keep layouts clean and well-structured.`;
-
-	const textarea = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
-	if (textarea) {
-		textarea.value = defaultPrompt;
-	}
-}
-
-async function applySystemPrompt() {
-	const systemPromptInput = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
-	const content = systemPromptInput?.value || "";
-
-	try {
-		const response = await electroview.rpc.request.saveSystemPrompt({ content });
-		if (response?.success) {
-			updateStatus("System prompt applied");
-		} else {
-			showError(response?.error || "Failed to apply system prompt");
-		}
-	} catch (error) {
-		showError(error instanceof Error ? error.message : "Failed to apply system prompt");
 	}
 }
 
