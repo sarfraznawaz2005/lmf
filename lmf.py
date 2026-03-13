@@ -293,6 +293,28 @@ def _text_h(fs: float) -> float:
     return fs * 1.4
 
 
+def _wrap_text(text: str, max_w: float, fs: float) -> list:
+    """Word-wrap text into lines that fit within max_w pixels."""
+    if max_w <= 0 or not text:
+        return [text] if text else [""]
+    words = text.split()
+    if not words:
+        return [""]
+    lines = []
+    current = ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if _text_w(candidate, fs) <= max_w:
+            current = candidate
+        else:
+            if current:
+                lines.append(current)
+            current = word  # single word may still exceed max_w — keep it anyway
+    if current:
+        lines.append(current)
+    return lines if lines else [text]
+
+
 def _natural_w(node: Node) -> float:
     """Estimate the natural (content) width of any node."""
     t = node.type
@@ -341,6 +363,9 @@ def _natural_h(node: Node, given_w: float = 0) -> float:
     t = node.type
     fs = node.get_f("s", 14)
     if t == "T":
+        if node.get("wrap") and given_w > 0:
+            lines = _wrap_text(node.text or "", given_w, fs)
+            return _text_h(fs) * len(lines)
         return _text_h(fs)
     if t == "Av":
         return node.get_f("s", 40)
@@ -372,10 +397,17 @@ def _child_w_in_col(child: Node, inner_w: float) -> float:
         return float(w)
     if isinstance(w, str) and w.endswith("%"):
         return inner_w * float(w[:-1]) / 100
+    if w == "flex":
+        return inner_w  # w:f → fill column width explicitly
     # Av and Ic have an implicit square size from their 's' prop
     if child.type in ("Av", "Ic"):
         return child.get_f("s", 40 if child.type == "Av" else 20)
-    return inner_w  # w:f or no w → stretch to column width
+    # Icon/badge-only containers (C, B) with no explicit w use natural width
+    # so they don't stretch to fill the column (e.g. icon boxes like C bg:#6366f1 r:10 p:10)
+    if child.type in ("C", "B") and child.children:
+        if all(c.type in ("Ic", "Av", "Bd") for c in child.children):
+            return _natural_w(child)
+    return inner_w  # everything else stretches to column width
 
 
 def _compute_flex_w(children: list[Node], inner_w: float, total_gap: float) -> float:
@@ -925,8 +957,15 @@ def _render_content(node: Node, box: LayoutBox, parts: list[str], defs: list[str
         al = node.get("al", "start")
         anchor = {"center": "middle", "right": "end"}.get(al, "start")
         tx = {"center": ax + w / 2, "right": ax + w}.get(al, ax)
-        ty = ay + h / 2
-        parts.append(_txt(tx, ty, node.text, fs, c, bold, italic, anchor))
+        if node.get("wrap") and w > 0:
+            lines = _wrap_text(node.text or "", w, fs)
+            line_h = _text_h(fs)
+            for i, line in enumerate(lines):
+                ty_i = ay + line_h * (i + 0.5)
+                parts.append(_txt(tx, ty_i, line, fs, c, bold, italic, anchor))
+        else:
+            ty = ay + h / 2
+            parts.append(_txt(tx, ty, node.text, fs, c, bold, italic, anchor))
 
     elif t == "Dv":
         dc = node.get("c", "#334155")
@@ -1286,12 +1325,17 @@ def render_png(source: str, output: str, scale: int = 1):
 
     try:
         import cairosvg
-    except ImportError:
-        svg_path = Path(output).with_suffix(".svg")
-        svg_path.write_text(svg, encoding="utf-8")
-        print(f"cairosvg not installed — saved SVG to: {svg_path}")
-        print("Install PNG support: pip install cairosvg")
-        return
+    except ImportError as e:
+        # Check if it's actually cairosvg missing or a dependency issue
+        error_msg = str(e).lower()
+        if "cairosvg" in error_msg:
+            raise RuntimeError("cairosvg not installed. Install with: pip install cairosvg")
+        else:
+            # Likely a DLL loading issue (e.g., pyexpat)
+            raise RuntimeError(f"cairosvg dependency error: {e}. Try reinstalling Python or installing Visual C++ Redistributables")
+    except Exception as e:
+        # Catch other import errors like DLL load failures
+        raise RuntimeError(f"Failed to load cairosvg: {e}. This may be a Python installation issue. Try: pip install --force-reinstall cairosvg")
 
     cairosvg.svg2png(
         bytestring=svg.encode("utf-8"),
@@ -1343,7 +1387,7 @@ def main():
             svg = render_svg(src)
             print(svg, end="")
         elif args.output.endswith(".png"):
-            render_png(args.output, scale=args.scale)
+            render_png(src, args.output, scale=args.scale)
             print(f"Rendered PNG: {args.output}", file=sys.stderr)
         elif args.output.endswith(".html"):
             html = render_html(src)

@@ -39,6 +39,7 @@ const elements = {
 	svgContainer: document.getElementById("svg-container")!,
 	lmfCode: document.getElementById("lmf-code")!,
 	previewModeBadge: document.getElementById("preview-mode-badge")!,
+	clearPreviewBtn: document.getElementById("clear-preview-btn")! as HTMLButtonElement,
 	statusText: document.getElementById("status-text")!,
 	tokenCount: document.getElementById("token-count")!,
 	providerStatus: document.getElementById("provider-status")!,
@@ -123,6 +124,7 @@ function setupEventListeners() {
 		openSettings();
 	});
 	elements.exportBtn.addEventListener("click", handleExport);
+	elements.clearPreviewBtn.addEventListener("click", clearPreview);
 
 	// Chat input
 	elements.sendBtn.addEventListener("click", () => {
@@ -420,6 +422,39 @@ function showPreview() {
 		elements.lmfCodeView.classList.add("active");
 		elements.previewModeBadge.textContent = "LMF";
 	}
+}
+
+function clearPreview() {
+	// Clear state
+	state.currentLmf = "";
+	state.currentSvg = "";
+	state.currentConversation = "";
+	state.lastPrompt = "";
+
+	// Clear UI
+	elements.svgContainer.innerHTML = "";
+	elements.lmfCode.textContent = "";
+	elements.conversationContent.innerHTML = "";
+	elements.promptInput.value = "";
+
+	// Reset to SVG view and show empty state
+	state.isSvgView = true;
+	elements.svgPreview.classList.remove("hidden");
+	elements.svgPreview.classList.add("active");
+	elements.lmfCodeView.classList.add("hidden");
+	elements.lmfCodeView.classList.remove("active");
+	elements.conversationView.classList.add("hidden");
+	elements.conversationView.classList.remove("active");
+	elements.emptyState.classList.remove("hidden");
+	elements.previewModeBadge.textContent = "SVG";
+
+	// Update token count
+	elements.tokenCount.textContent = "Tokens: ~0";
+
+	// Resize input back to single line
+	autoResize();
+
+	updateStatus("Ready");
 }
 
 async function handleExport() {
