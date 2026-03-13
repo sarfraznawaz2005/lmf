@@ -18,10 +18,10 @@ if ($envChoice -eq "2") {
 }
 
 Write-Host ""
-Write-Host "Building LMF Generator (--env $buildEnv)..."
+Write-Host "Building LMF Generator (--env=$buildEnv)..."
 Write-Host ""
 
-& bunx electrobun build --env $buildEnv
+& bunx electrobun build "--env=$buildEnv"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
