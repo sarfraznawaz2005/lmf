@@ -46,12 +46,17 @@ const elements = {
 	chatInputWrapper: document.querySelector(".chat-input-wrapper") as HTMLElement,
 	conversationView: document.getElementById("conversation-view")!,
 	conversationContent: document.getElementById("conversation-content")!,
-	errorMessage: document.getElementById("error-message")!,
+
+	// Error modal
+	errorModal: document.getElementById("error-modal")!,
+	errorMessageText: document.getElementById("error-message-text")!,
+	closeErrorBtn: document.getElementById("close-error")!,
+	errorOkBtn: document.getElementById("error-ok-btn")!,
 
 	// Settings modal
 	settingsModal: document.getElementById("settings-modal")!,
 	closeModalBtn: document.getElementById("close-settings")!,
-	modalBody: document.querySelector(".modal-body")!,
+	modalBody: document.querySelector("#settings-modal .modal-body")!,
 	app: document.getElementById("app")!,
 };
 
@@ -145,6 +150,11 @@ function setupEventListeners() {
 	// Settings modal
 	elements.closeModalBtn.addEventListener("click", closeSettings);
 	elements.settingsModal.querySelector(".modal-overlay")?.addEventListener("click", closeSettings);
+
+	// Error modal
+	elements.closeErrorBtn.addEventListener("click", closeErrorModal);
+	elements.errorOkBtn.addEventListener("click", closeErrorModal);
+	elements.errorModal.querySelector(".modal-overlay")?.addEventListener("click", closeErrorModal);
 
 	// Global keyboard shortcuts
 	document.addEventListener("keydown", handleGlobalKeydown);
@@ -917,22 +927,50 @@ function updateConnectionStatus(data?: { connected: boolean; provider: string })
 }
 
 function showError(message: string) {
-	console.error(message);
-	updateStatus(`Error: ${message}`);
+	// Clean up Python traceback messages to extract just the main error
+	const cleanMessage = extractMainError(message);
+	console.error('Full error:', message); // Log full error to console
 
-	// Show error message in the chat area
-	elements.errorMessage.textContent = message;
-	elements.errorMessage.classList.remove('hidden');
+	// Show error in modal dialog
+	elements.errorMessageText.textContent = cleanMessage;
+	elements.errorModal.classList.remove('hidden');
+}
 
-	// Auto-hide after 5 seconds
-	setTimeout(() => {
-		hideError();
-	}, 5000);
+function closeErrorModal() {
+	elements.errorModal.classList.add('hidden');
+	elements.errorMessageText.textContent = '';
+}
+
+function extractMainError(errorMessage: string): string {
+	// Try to find the last RuntimeError or the last line of the traceback
+	const lines = errorMessage.split('\n');
+
+	// Look for RuntimeError or similar error messages
+	for (let i = lines.length - 1; i >= 0; i--) {
+		const line = lines[i].trim();
+		if (line.startsWith('RuntimeError:') || line.startsWith('Error:')) {
+			return line.replace('RuntimeError:', '').replace('Error:', '').trim();
+		}
+	}
+
+	// Look for lines that look like error messages (contain error-related words)
+	for (let i = lines.length - 1; i >= 0; i--) {
+		const line = lines[i].trim();
+		if (line && !line.startsWith('File ') && !line.startsWith('Traceback') && !line.startsWith('  File ') && !line.startsWith('During') && !line.startsWith('^')) {
+			// This might be the actual error message
+			if (line.includes('not installed') || line.includes('dependency') || line.includes('DLL') || line.includes('failed')) {
+				return line;
+			}
+		}
+	}
+
+	// If we can't extract anything meaningful, return the last non-empty line or original
+	const lastLine = lines.filter(l => l.trim()).pop();
+	return lastLine || errorMessage;
 }
 
 function hideError() {
-	elements.errorMessage.classList.add('hidden');
-	elements.errorMessage.textContent = '';
+	closeErrorModal();
 }
 
 function capitalize(str: string): string {

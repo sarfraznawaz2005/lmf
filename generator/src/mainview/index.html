@@ -26,7 +26,7 @@
       </header>
 
     <!-- Main Preview Area -->
-    <main class="preview-container">
+    <div class="preview-container">
       <div class="preview-header">
         <span class="preview-label">LIVE PREVIEW</span>
         <div class="preview-controls">
@@ -59,9 +59,6 @@
 
     <!-- Chat Input Section -->
     <section class="chat-input-container">
-      <!-- Error Message Display -->
-      <div id="error-message" class="error-message hidden"></div>
-
       <div class="chat-input-wrapper">
         <div class="chat-input-row">
           <!-- Text Input with integrated Send button -->
@@ -90,7 +87,28 @@
         <span id="connection-badge" class="badge">Disconnected</span>
       </div>
     </footer>
-    </main>
+
+    <!-- Error Dialog Modal -->
+    <div id="error-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content error-modal-content">
+        <div class="modal-header">
+          <h2>Error</h2>
+          <button id="close-error" class="icon-btn modal-close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="error-message-text" class="error-text"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="error-ok-btn" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal hidden">

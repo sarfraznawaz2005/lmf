@@ -56,24 +56,55 @@ export class Renderer {
     this.checkPython();
   }
 
-  private async checkPython() {
+  private async tryPython(pythonCmd: string): Promise<{ works: boolean; cairosvgWorks: boolean }> {
     try {
-      const result = await $`${this.pythonPath} --version`.quiet().nothrow();
-      this.pythonAvailable = result.exitCode === 0;
-
-      if (this.pythonAvailable) {
-        // Check for cairosvg
-        try {
-          await $`${this.pythonPath} -c "import cairosvg"`.quiet().nothrow();
-          this.cairosvgAvailable = true;
-        } catch {
-          this.cairosvgAvailable = false;
-        }
+      const versionResult = await $`${pythonCmd} --version`.quiet().nothrow();
+      if (versionResult.exitCode !== 0) {
+        return { works: false, cairosvgWorks: false };
       }
+
+      // Check if cairosvg can be imported
+      const importResult = await $`${pythonCmd} -c "import cairosvg; print('cairosvg_ok')"`.quiet().nothrow();
+      const cairosvgWorks = importResult.exitCode === 0 && importResult.stdout?.toString().includes('cairosvg_ok');
+
+      return { works: true, cairosvgWorks };
     } catch {
-      this.pythonAvailable = false;
-      this.cairosvgAvailable = false;
+      return { works: false, cairosvgWorks: false };
     }
+  }
+
+  private async checkPython() {
+    // List of Python commands to try (in order of preference)
+    const pythonCommands = [
+      'python3.13',
+      'python3.12',
+      'python3.11',
+      'python3',
+      'py -3.13',
+      'py -3.12',
+      'py -3.11',
+      'py',
+      'python',
+    ];
+
+    console.log('[Renderer] Searching for working Python with cairosvg...');
+
+    for (const cmd of pythonCommands) {
+      const result = await this.tryPython(cmd);
+      if (result.works) {
+        this.pythonPath = cmd;
+        this.pythonAvailable = true;
+        this.cairosvgAvailable = result.cairosvgWorks;
+        console.log(`[Renderer] Found working Python: ${cmd} (cairosvg: ${result.cairosvgWorks})`);
+        return;
+      }
+    }
+
+    // Fallback: try to use whatever 'python' is
+    console.log('[Renderer] No working Python found with cairosvg, falling back to system python');
+    this.pythonPath = 'python';
+    this.pythonAvailable = false;
+    this.cairosvgAvailable = false;
   }
 
   async checkStatus(): Promise<{ available: boolean; version?: string; cairosvgAvailable: boolean }> {
@@ -94,6 +125,62 @@ export class Renderer {
       version,
       cairosvgAvailable: this.cairosvgAvailable,
     };
+  }
+
+  async installCairoSVG(): Promise<{ success: boolean; message: string }> {
+    if (!this.pythonAvailable) {
+      return {
+        success: false,
+        message: 'Python is not available. Please install Python first.',
+      };
+    }
+
+    try {
+      console.log('[Renderer] Installing cairosvg...');
+      const result = await $`${this.pythonPath} -m pip install cairosvg`.quiet().nothrow();
+
+      if (result.exitCode === 0) {
+        // Verify installation by actually importing (catches DLL errors)
+        const verifyResult = await $`${this.pythonPath} -c "import cairosvg; print('cairosvg_ok')"`.quiet().nothrow();
+        if (verifyResult.exitCode === 0 && verifyResult.stdout?.toString().includes('cairosvg_ok')) {
+          this.cairosvgAvailable = true;
+          console.log('[Renderer] cairosvg installed and verified successfully');
+          return {
+            success: true,
+            message: 'cairosvg installed successfully',
+          };
+        } else {
+          const errorMsg = verifyResult.stderr?.toString() || 'Import verification failed';
+          console.error('[Renderer] cairosvg installed but import failed:', errorMsg);
+          this.cairosvgAvailable = false;
+          // Check for DLL errors
+          if (errorMsg.includes('DLL load failed') || errorMsg.includes('pyexpat') || errorMsg.includes('ImportError')) {
+            return {
+              success: false,
+              message: `cairosvg installed but cannot be loaded due to Python configuration issues (mixed Python/miniconda installations). PNG export unavailable. Use SVG or HTML export instead.`,
+            };
+          }
+          return {
+            success: false,
+            message: `cairosvg installed but cannot be imported: ${errorMsg}`,
+          };
+        }
+      } else {
+        const errorMsg = result.stderr?.toString() || 'Unknown error during installation';
+        console.error('[Renderer] Failed to install cairosvg:', errorMsg);
+        return {
+          success: false,
+          message: `Failed to install cairosvg: ${errorMsg}`,
+        };
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('[Renderer] Error installing cairosvg:', errorMsg);
+      return {
+        success: false,
+        message: `Error installing cairosvg: ${errorMsg}`,
+      };
+    }
   }
 
   async render(lmf: string, options: RenderOptions): Promise<RenderResult> {
@@ -153,9 +240,19 @@ export class Renderer {
       console.log('[Renderer] Stderr:', result.stderr?.toString() || 'empty');
 
       if (result.exitCode !== 0) {
+        const stderr = result.stderr?.toString() || '';
+
+        // Check for Windows DLL/pyexpat errors
+        if (stderr.includes('DLL load failed') || stderr.includes('pyexpat') || stderr.includes('cannot run')) {
+          return {
+            success: false,
+            error: `Python DLL/Import Error: ${stderr.split('\n').pop() || 'DLL load failed'}\n\nYour Python installation has a configuration issue (common with mixed Python/miniconda setups).\n\nQuick fix: Use SVG or HTML export instead - they work without cairosvg.\n\nTo fix PNG export:\n1. Reinstall Python from python.org (64-bit, use "Install for all users")\n2. Or use a clean virtual environment\n3. Install Visual C++ Redistributables if missing`,
+          };
+        }
+
         return {
           success: false,
-          error: result.stderr?.toString() || 'Rendering failed',
+          error: stderr || 'Rendering failed',
         };
       }
 

@@ -564,6 +564,29 @@ mainWindow.webview.on("dom-ready", () => {
 		provider: config.provider,
 	});
 
+	// Background check: verify cairosvg is installed and auto-install if needed
+	setTimeout(async () => {
+		console.log('[Bun] Background check: verifying Python and cairosvg...');
+		const status = await renderer.checkStatus();
+
+		if (!status.available) {
+			console.log('[Bun] Python not available, skipping cairosvg check');
+			return;
+		}
+
+		if (status.cairosvgAvailable) {
+			console.log('[Bun] cairosvg is already installed');
+		} else {
+			console.log('[Bun] cairosvg not found, attempting auto-install...');
+			const result = await renderer.installCairoSVG();
+			if (result.success) {
+				console.log('[Bun] cairosvg auto-install succeeded:', result.message);
+			} else {
+				console.error('[Bun] cairosvg auto-install failed:', result.message);
+			}
+		}
+	}, 2000); // Run 2 seconds after window is ready
+
 	// Focus the chat input after window is shown and webview is ready
 	setTimeout(async () => {
 		console.log('[Bun] Focusing window and webview');

@@ -1286,8 +1286,17 @@ def render_png(source: str, output: str, scale: int = 1):
 
     try:
         import cairosvg
-    except ImportError:
-        raise RuntimeError("cairosvg not installed. Install with: pip install cairosvg")
+    except ImportError as e:
+        # Check if it's actually cairosvg missing or a dependency issue
+        error_msg = str(e).lower()
+        if "cairosvg" in error_msg:
+            raise RuntimeError("cairosvg not installed. Install with: pip install cairosvg")
+        else:
+            # Likely a DLL loading issue (e.g., pyexpat)
+            raise RuntimeError(f"cairosvg dependency error: {e}. Try reinstalling Python or installing Visual C++ Redistributables")
+    except Exception as e:
+        # Catch other import errors like DLL load failures
+        raise RuntimeError(f"Failed to load cairosvg: {e}. This may be a Python installation issue. Try: pip install --force-reinstall cairosvg")
 
     cairosvg.svg2png(
         bytestring=svg.encode("utf-8"),
