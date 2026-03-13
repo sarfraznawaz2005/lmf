@@ -470,7 +470,7 @@ function renderSettingsModal(settings: Settings) {
 		<div class="settings-content">
 			<section class="settings-section">
 				<h3>AI Provider</h3>
-				<p class="section-desc">Select your AI provider (Vercel AI SDK)</p>
+				<p class="section-desc">Select AI Provider</p>
 
 				<div class="provider-cards">
 					<div class="provider-card ${settings.provider === "anthropic" ? "selected" : ""}" data-provider="anthropic">
