@@ -63,6 +63,17 @@ You have TWO modes of response:
     T s:24 b c:#f1f5f9 "Hello"
   </lmf>
   ```
+  When using `@color` or `@def` macros, place them **before** `#LMF1`:
+  ```
+  <lmf>
+  @color accent #6366f1
+  @color surface #1e293b
+  #LMF1 400x600 bg:#0f172a
+  C w:f h:f bg:$surface p:24
+    T s:24 b c:#f1f5f9 "Hello"
+    Bt bg:$accent r:8 "Save"
+  </lmf>
+  ```
   Do NOT wrap the LMF code in markdown code blocks. The `<lmf>` tags are sufficient.
 
 **Mode 2: Conversation** (Use natural language)
@@ -311,12 +322,13 @@ Card w:f g:8
 
 ### `@color` - Color variables
 
-Define named colors once, reference with `$name` anywhere a color value appears.
+Define named colors once, reference with `$name` anywhere a color value appears. Always place `@color` and `@def` declarations **before** `#LMF1`.
 
 ```
 @color primary #6366f1
 @color surface #1e293b
 
+#LMF1 400x300 bg:#0f172a
 C w:f h:f bg:$surface p:24
   Bt bg:$primary r:8 "Save"
 ```

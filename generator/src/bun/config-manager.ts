@@ -12,6 +12,7 @@ const DEFAULT_CONFIG: AppConfig = {
 	apiKeys: {
 		anthropic: "",
 		openai: "",
+		gemini: "",
 		custom: "",
 	},
 	customProvider: {

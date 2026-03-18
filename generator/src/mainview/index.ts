@@ -13,6 +13,7 @@ interface Settings {
 	apiKeys: {
 		anthropic: string;
 		openai: string;
+		gemini: string;
 		custom: string;
 	};
 	customProvider: {
@@ -525,6 +526,16 @@ function renderSettingsModal(settings: Settings) {
 						<p class="provider-models">GPT-4, GPT-3.5 Turbo</p>
 					</div>
 
+					<div class="provider-card ${settings.provider === "gemini" ? "selected" : ""}" data-provider="gemini">
+						<div class="provider-header">
+							<div class="provider-info">
+								<div class="provider-avatar gemini">G</div>
+								<span class="provider-name">Google Gemini</span>
+							</div>
+						</div>
+						<p class="provider-models">Gemini 2.0 Flash, Gemini 1.5 Pro</p>
+					</div>
+
 					<div class="provider-card ${settings.provider === "custom" ? "selected" : ""}" data-provider="custom">
 						<div class="provider-header">
 							<div class="provider-info">
@@ -725,6 +736,12 @@ function selectProvider(card: HTMLElement) {
 	if (baseUrlGroup) {
 		baseUrlGroup.style.display = provider === "custom" ? "block" : "none";
 	}
+
+	// Update API key input to show stored key for newly selected provider
+	const apiKeyInput = document.getElementById("api-key-input") as HTMLInputElement;
+	if (apiKeyInput && provider && state.settings?.apiKeys) {
+		apiKeyInput.value = state.settings.apiKeys[provider as keyof typeof state.settings.apiKeys] || "";
+	}
 }
 
 async function saveSettings() {
@@ -742,13 +759,14 @@ async function saveSettings() {
 	}
 
 	// Preserve existing API keys for other providers
-	const existingKeys = state.settings?.apiKeys || { anthropic: "", openai: "", custom: "" };
+	const existingKeys = state.settings?.apiKeys || { anthropic: "", openai: "", gemini: "", custom: "" };
 
 	const settings = {
 		provider: selectedProvider,
 		apiKeys: {
 			anthropic: selectedProvider === "anthropic" ? (apiKeyInput?.value || existingKeys.anthropic) : existingKeys.anthropic,
 			openai: selectedProvider === "openai" ? (apiKeyInput?.value || existingKeys.openai) : existingKeys.openai,
+			gemini: selectedProvider === "gemini" ? (apiKeyInput?.value || existingKeys.gemini) : existingKeys.gemini,
 			custom: selectedProvider === "custom" ? (apiKeyInput?.value || existingKeys.custom) : existingKeys.custom,
 		},
 		customProvider: {

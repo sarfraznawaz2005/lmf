@@ -83,6 +83,10 @@
   background-color: #5a7a5a;
 }
 
+.provider-avatar.gemini {
+  background-color: #4285f4;
+}
+
 .provider-avatar.custom {
   background-color: #5a6a9a;
 }

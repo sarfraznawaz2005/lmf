@@ -1,10 +1,11 @@
 // Shared TypeScript types for LMF Generator
 
 export interface AppConfig {
-  provider: 'anthropic' | 'openai' | 'custom';
+  provider: 'anthropic' | 'openai' | 'gemini' | 'custom';
   apiKeys: {
     anthropic: string;
     openai: string;
+    gemini: string;
     custom: string;
   };
   customProvider: {

@@ -3,6 +3,7 @@
 import { generateText, LanguageModel } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { OpenAI } from 'openai';
 
 import type { AppConfig, LMFGenerationRequest } from '../shared/types';
@@ -11,6 +12,7 @@ export class AIProvider {
   private config: AppConfig;
   private anthropic: ReturnType<typeof createAnthropic> | null = null;
   private openai: ReturnType<typeof createOpenAI> | null = null;
+  private google: ReturnType<typeof createGoogleGenerativeAI> | null = null;
   private openaiClient: OpenAI | null = null;
   private abortController: AbortController | null = null;
 
@@ -24,6 +26,13 @@ export class AIProvider {
     if (this.config.apiKeys.anthropic) {
       this.anthropic = createAnthropic({
         apiKey: this.config.apiKeys.anthropic,
+      });
+    }
+
+    // Initialize Google Gemini
+    if (this.config.apiKeys.gemini) {
+      this.google = createGoogleGenerativeAI({
+        apiKey: this.config.apiKeys.gemini,
       });
     }
 
@@ -76,7 +85,7 @@ export class AIProvider {
         return await this.generateWithOpenAIClient(prompt, modelName, systemPrompt, currentLmf);
       }
 
-      if (!this.anthropic && !this.openai) {
+      if (!this.anthropic && !this.openai && !this.google) {
         throw new Error('No AI provider configured. Please add an API key in settings.');
       }
 
@@ -87,6 +96,11 @@ export class AIProvider {
           throw new Error('Anthropic API key not configured');
         }
         model = this.anthropic(modelName || 'claude-3-5-sonnet-20241022');
+      } else if (this.config.provider === 'gemini') {
+        if (!this.google) {
+          throw new Error('Gemini API key not configured');
+        }
+        model = this.google(modelName || 'gemini-1.5-pro-latest');
       } else {
         if (!this.openai) {
           throw new Error('OpenAI API key not configured');
@@ -220,6 +234,15 @@ export class AIProvider {
         'claude-3-opus-20240229',
         'claude-3-sonnet-20240229',
         'claude-3-haiku-20240307',
+      ];
+    } else if (this.config.provider === 'gemini') {
+      // Gemini models (fixed list)
+      return [
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-1.5-pro-latest',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash-8b-latest',
       ];
     } else {
       // OpenAI compatible - fetch from API

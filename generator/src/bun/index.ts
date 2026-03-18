@@ -108,13 +108,13 @@ export const rpc = BrowserView.defineRPC({
 						lmfContent = lmfTagMatch[1].trim();
 						// Remove any markdown code block wrappers inside
 						lmfContent = lmfContent.replace(/```(?:lmf)?\s*\n?([\s\S]*?)\n?\s*```/, '$1').trim();
-						foundLmf = lmfContent.startsWith('#LMF1');
+						foundLmf = lmfContent.includes('#LMF1');
 						console.log('[RPC] Found LMF in <lmf> tags:', foundLmf);
 					}
 
 					// Fallback: Try markdown code blocks containing #LMF1
 					if (!foundLmf) {
-						const codeBlockMatch = trimmedText.match(/```(?:lmf)?\s*\n?(#LMF1[\s\S]*?)\n?\s*```/);
+						const codeBlockMatch = trimmedText.match(/```(?:lmf)?\s*\n?((?:@\w[^\n]*\n)*#LMF1[\s\S]*?)\n?\s*```/);
 						if (codeBlockMatch) {
 							lmfContent = codeBlockMatch[1].trim();
 							foundLmf = true;
@@ -122,11 +122,14 @@ export const rpc = BrowserView.defineRPC({
 						}
 					}
 
-					// Fallback: Check if text starts with #LMF1 directly
-					if (!foundLmf && trimmedText.startsWith('#LMF1')) {
-						lmfContent = trimmedText;
-						foundLmf = true;
-						console.log('[RPC] Found LMF at start of response');
+					// Fallback: Check if text starts with #LMF1 or @color/@var directives followed by #LMF1
+					if (!foundLmf && trimmedText.includes('#LMF1')) {
+						const lmfStart = trimmedText.search(/(?:^|\n)(?:@\w[^\n]*\n)*#LMF1/);
+						if (lmfStart !== -1) {
+							lmfContent = trimmedText.slice(lmfStart).trimStart();
+							foundLmf = true;
+							console.log('[RPC] Found LMF at start of response');
+						}
 					}
 
 					if (foundLmf && lmfContent) {
@@ -380,6 +383,35 @@ export const rpc = BrowserView.defineRPC({
 									{ role: "user", content: "Respond with just the word 'OK' to confirm connection." },
 								],
 								
+								abortSignal: AbortSignal.timeout(30000),
+							});
+
+							if (!result.text || result.text.trim().length === 0) {
+								throw new Error("No completion response received");
+							}
+
+							sendTestProviderResult({
+								success: true,
+								response: result.text.trim().substring(0, 100),
+								tokens: result.usage?.totalTokens || 0,
+							});
+							return;
+						}
+
+						// For Gemini, use the Google AI SDK
+						if (provider === "gemini") {
+							const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+							const { generateText } = await import("ai");
+
+							const google = createGoogleGenerativeAI({
+								apiKey: apiKey,
+							});
+
+							const result = await generateText({
+								model: google(model || "gemini-1.5-flash-latest"),
+								messages: [
+									{ role: "user", content: "Respond with just the word 'OK' to confirm connection." },
+								],
 								abortSignal: AbortSignal.timeout(30000),
 							});
 
